@@ -1,8 +1,11 @@
-import React from "react";
 import { Button } from "./ui/button";
 import { Link } from "react-router-dom";
 import logo from "../assets/logo2.svg";
 import mailIcon from "../assets/mailIcon.svg";
+import facebookIcon from '../assets/facebook-icon.svg';
+import twitterIcon from '../assets/twitter-icon.svg';
+import instagramIcon from '../assets/instagram-icon.svg';
+import youtubeIcon from '../assets/youtube-icon.svg';
 const Footer = ({ paddingTop = 'pt-[100px]', paddingTopMd = 'md:pt-[400px]' }) => (
   <footer className={`bg-[#F0F0F2] ${paddingTop} ${paddingTopMd} pb-8 relative z-10`}>
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -153,16 +156,16 @@ const Footer = ({ paddingTop = 'pt-[100px]', paddingTopMd = 'md:pt-[400px]' }) =
             
             <div className="flex gap-3">
               <a href="#" className="bg-white rounded-full p-2 flex items-center justify-center h-10 w-10">
-                <img src="/facebook-icon.svg" alt="Facebook" className="h-5 w-5" />
+                <img src={facebookIcon} alt="Facebook" className="h-5 w-5" />
               </a>
               <a href="#" className="bg-white rounded-full p-2 flex items-center justify-center h-10 w-10">
-                <img src="/twitter-icon.svg" alt="Twitter" className="h-5 w-5" />
+                <img src={twitterIcon} alt="Twitter" className="h-5 w-5" />
               </a>
               <a href="#" className="bg-white rounded-full p-2 flex items-center justify-center h-10 w-10">
-                <img src="/instagram-icon.svg" alt="Instagram" className="h-5 w-5" />
+                <img src={instagramIcon} alt="Instagram" className="h-5 w-5" />
               </a>
               <a href="#" className="bg-white rounded-full p-2 flex items-center justify-center h-10 w-10">
-                <img src="/youtube-icon.svg" alt="YouTube" className="h-5 w-5" />
+                <img src={youtubeIcon} alt="YouTube" className="h-5 w-5" />
               </a>
             </div>
           </div>

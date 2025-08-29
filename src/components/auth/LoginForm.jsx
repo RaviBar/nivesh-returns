@@ -1,6 +1,6 @@
 
 import { Button } from "../ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import loginImg from "../../assets/loginProfile.svg";
@@ -8,7 +8,33 @@ import bg from "../../assets/profile-bg.svg";
 
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
+    const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+        credentials: "include"
+      });
+      const data = await res.json();
+      if (data.success) {
+        if (data.role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/user/dashboard/profile");
+        }
+      } else {
+        alert(data.error || "Login failed");
+      }
+    } catch (err) {
+      alert("Login error");
+    }
+  };
   return (
     <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-7xl mt-24 pt-20 px-12 gap-6 md:gap-8 lg:gap-20">
       {/* Left side - Form */}
@@ -23,7 +49,7 @@ export default function LoginForm() {
           </Link>
         </p>
 
-        <form className="space-y-5">
+        <form className="space-y-5" onSubmit={handleLogin}>
           <div>
             <label htmlFor="email" className="block text-sm font-poppins text-[#101218] mb-4">
               Email Address<span className="text-red-500"> *</span>
@@ -31,6 +57,8 @@ export default function LoginForm() {
             <input
               id="email"
               type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
               placeholder="ex: example@gmail.com"
               className="w-full px-4 py-3 border text-base font-poppins border-gray-300 text-[#919EAB] rounded-lg focus:border-transparent"
               required
@@ -44,6 +72,8 @@ export default function LoginForm() {
             <input
               id="password"
               type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={e => setPassword(e.target.value)}
               placeholder="Enter Password"
               className="w-full px-4 py-3 border border-gray-300 font-inter text-base text-[#999DAA] rounded-lg focus:border-transparent pr-10"
               required

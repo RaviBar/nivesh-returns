@@ -22,10 +22,10 @@ const AboutInvestmentsPage = () => {
       </div>
 
       {/* Investment Sections */}
-      <div className="space-y-5 w-[792px]">
+      <div className="space-y-5 lg:w-[792px]">
         {/* E-Commerce Investment */}
         <Card>
-          <div className="p-6">
+          <div className="p-4 lg:p-6">
             <div>
               <h2 className="text-lg font-semibold text-[#FFA200] mb-5">E-Commerce Investment</h2>
             </div>

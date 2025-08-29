@@ -10,6 +10,52 @@ export default function SignUpForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [countryCode, setCountryCode] = useState("+91");
+const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (formData.password !== formData.confirmPassword) {
+      alert("Passwords do not match!");
+      return;
+    }
+    
+
+  try {
+    console.log("Submitting:", formData);
+      const res = await fetch("http://localhost:5000/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: `${countryCode}${formData.phone}`,
+          password: formData.password,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        alert("Account created successfully!");
+        console.log("User saved:", data);
+      } else {
+        alert(data.message || "Registration failed");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("Something went wrong. Please try again.");
+    }
+  };
 
 const handleCountryCodeSelect = (code) => {
   setCountryCode(code);
@@ -24,7 +70,7 @@ const handleCountryCodeSelect = (code) => {
         </div>
           <p className="text-[#666D80] text-[18px] mb-8 font-inter">Secure your spot, choose a plan, and start earning effortlessly.</p>
 
-        <form className="space-y-4 max-w-[444px]">
+        <form onSubmit={handleSubmit} className="space-y-4 max-w-[444px]">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="firstName" className="block text-sm font-inter text-[#212B36] mb-1">
@@ -33,6 +79,8 @@ const handleCountryCodeSelect = (code) => {
               <input
                 id="firstName"
                 type="text"
+                value={formData.firstName}
+                onChange={handleChange}
                 placeholder="Enter first name"
                 className="w-full px-4 py-3 font-inter text-base border border-gray-300 text-[#999DAA] rounded-full focus:border-transparent"
                 required
@@ -45,6 +93,8 @@ const handleCountryCodeSelect = (code) => {
               <input
                 id="lastName"
                 type="text"
+                value={formData.lastName}
+                onChange={handleChange}
                 placeholder="Enter last name"
                 className="w-full px-4 py-3 font-inter text-base border border-gray-300 text-[#999DAA] rounded-full focus:border-transparent"
                 required
@@ -59,6 +109,8 @@ const handleCountryCodeSelect = (code) => {
             <input
               id="email"
               type="email"
+              value={formData.email}
+              onChange={handleChange}
               placeholder="Enter email address"
               className="w-full px-4 py-3 font-inter text-base border border-gray-300 text-[#999DAA] rounded-lg focus:border-transparent"
               required
@@ -108,6 +160,8 @@ const handleCountryCodeSelect = (code) => {
     <input
       id="phone"
       type="tel"
+      value={formData.phone}
+      onChange={handleChange}
       placeholder="12345 67890"
       className="flex-1 px-4 py-3 border border-gray-300 text-[#999DAA] rounded-lg focus:border-transparent"
       required
@@ -123,6 +177,8 @@ const handleCountryCodeSelect = (code) => {
               <input
                 id="password"
                 type={showPassword ? "text" : "password"}
+                value={formData.password}
+                onChange={handleChange}
                 placeholder="Enter Password"
                 className="w-full px-4 py-3 font-inter text-base border border-gray-300 text-[#999DAA] rounded-lg focus:border-transparent pr-10"
                 required
@@ -143,6 +199,8 @@ const handleCountryCodeSelect = (code) => {
                 id="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
                 placeholder="Enter Password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
                 className="w-full px-4 py-3 font-inter text-base border border-gray-300 text-[#999DAA] rounded-lg focus:border-transparent pr-10"
                 required
               />

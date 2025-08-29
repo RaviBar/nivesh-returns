@@ -3,6 +3,38 @@ import { Button } from "./ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "./ui/card";
 
 const PricingSection = () => {
+  const handleBuyNow = async (amount, planName) => {
+    try {
+      // 1. Create Razorpay order from backend
+      const { data: order } = await axios.post("/api/payments/create-order", { amount });
+
+      // 2. Razorpay options
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID, // from your .env
+        amount: order.amount,
+        currency: order.currency,
+        name: "Nivesh Returns",
+        description: planName,
+        order_id: order.id,
+        handler: async function (response) {
+          // 3. Verify payment with backend
+          await axios.post("/api/payments/verify-payment", response);
+
+          alert("✅ Payment Successful! Your investment is activated.");
+          // Optionally refresh dashboard data here
+        },
+        prefill: {
+          email: "user@example.com", // replace with logged-in user email
+        },
+      };
+
+      const razor = new window.Razorpay(options);
+      razor.open();
+    } catch (error) {
+      console.error("Payment Error:", error);
+      alert("Payment failed. Try again.");
+    }
+  };
   return (
     <section>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -44,7 +76,8 @@ const PricingSection = () => {
             </CardContent>
 
             <CardFooter className="pt-10 sm:pt-21">
-              <Button className="w-full py-4 sm:py-6 bg-[#25703A] text-white hover:bg-[#24503A]">
+              <Button className="w-full py-4 sm:py-6 bg-[#25703A] text-white hover:bg-[#24503A]"
+              onClick={() => handleBuyNow(13500, "Starter Plan")}>
                 BUY NOW
               </Button>
             </CardFooter>
@@ -77,7 +110,8 @@ const PricingSection = () => {
             </CardContent>
 
             <CardFooter className="pt-10 sm:pt-16">
-              <Button className="w-full font-manrope py-4 sm:py-6 bg-black text-white hover:bg-black">
+              <Button className="w-full font-manrope py-4 sm:py-6 bg-black text-white hover:bg-black"
+              onClick={() => handleBuyNow(25000, "Growth Plan")}>
                 BUY NOW
               </Button>
             </CardFooter>
@@ -110,7 +144,8 @@ const PricingSection = () => {
             </CardContent>
 
             <CardFooter className="pt-10 sm:pt-16">
-              <Button className="w-full py-4 sm:py-6 bg-[#25703A] text-white hover:bg-[#24503A]">
+              <Button className="w-full py-4 sm:py-6 bg-[#25703A] text-white hover:bg-[#24503A]"
+              onClick={() => handleBuyNow(50000, "Pro Plan")}>
                 BUY NOW
               </Button>
             </CardFooter>

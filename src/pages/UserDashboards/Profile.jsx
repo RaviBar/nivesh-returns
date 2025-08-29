@@ -5,7 +5,7 @@ import editIcon from "../../assets/editIcon.svg";
 const Profile = () => {
   return (
     <div className="flex-1 font-inter">
-      <div className="text-sm text-[#838894] mb-3">
+      <div className="text-sm text-[#838894] mb-3 px-4 lg:px-0">
         <Link to="/" className="hover:text-green-500">Home</Link>
         <span className="mx-2">/</span>
         <span >Dashboard</span>
@@ -13,12 +13,12 @@ const Profile = () => {
         <span className="text-[#52BD94] font-medium">My Profile</span>
       </div>
 
-      <h1 className="text-3xl font-medium mb-6 text-[#F1F2FF]">My Profile</h1>
+      <h1 className="text-3xl font-medium mb-6 text-[#F1F2FF] px-4 lg:px-0">My Profile</h1>
       
-      <div className="grid grid-cols-1 gap-5 p-8">
-        <Card className="w-[792px] ml-10">
-          <div className="flex p-6 justify-between items-start">
-            <div className="flex items-center gap-6">
+      <div className="grid grid-cols-1 gap-5 lg:p-8">
+        <Card className="w-full lg:w-[792px] lg:ml-10 mx-auto">
+          <div className="flex flex-col lg:flex-row p-6 justify-between items-start gap-4">
+            <div className="flex items-center gap-6"> 
               {/* Profile Image */}
               <img
                 src={newUserIcon} // Use public path or import if in assets
@@ -44,9 +44,9 @@ const Profile = () => {
           </div>
         </Card>
 
-        <Card className="w-[792px] ml-10">
+        <Card className="w-full lg:w-[792px] lg:ml-10 mx-auto">
           <div className="p-6">
-            <div className="flex justify-between items-start mb-5">
+            <div className="flex flex-col lg:flex-row justify-between items-start mb-5 gap-4">
               <h3 className="text-lg font-semibold text-[#F1F2FF]">Personal Details</h3>
               <button className="flex items-center gap-2 px-4 py-2 text-[#000814] bg-[#52BD94] hover:bg-green-600 rounded text-base font-medium">
                 <img 

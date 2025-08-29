@@ -16,34 +16,76 @@ const menuItems = [
   { name: "Log Out", href: "/", icon: logoutIcon },
 ];
 
-const Sidebar = () => (
-  <aside className="bg-[#161D29] text-white lg:w-[222px] w-full lg:min-h-screen lg:overflow-y-auto">
-    <ul className="lg:pt-7 flex lg:block overflow-x-auto">
-      {menuItems.map((item) => (
-        <li key={item.name} className="lg:w-auto w-[120px] flex-shrink-0">
-          <NavLink
-            to={item.href}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-3 rounded-sm transition-colors ${
-                isActive && item.name !== "Log Out"
-                  ? "bg-[#19372C] text-[#54BD95] border-l-3 border-[#54BD95]"
-                  : "hover:bg-gray-800 text-[#838894]"
-              } lg:text-sm text-xs`
-            }
-            end={item.name === "Log Out"}
-          >
-            <div className="h-4 w-4 flex-shrink-0">
-              <img src={item.icon} alt={item.name} className="h-full w-full object-contain" />
-            </div>
-            <span className="text-sm font-inter lg:inline">{item.name}</span>
-          </NavLink>
-          {item.name === "About Investments" && (
-            <hr className="border-t-[1px] border-[#424854] w-[190px] mx-auto my-2" />
-          )}
-        </li>
-      ))}
-    </ul>
-  </aside>
+const Sidebar = ({ isMobileOpen, closeMobileMenu }) => (
+  <>
+    {/* Mobile Overlay */}
+    <div
+      className={`fixed inset-0 bg-black/50 z-40 lg:hidden transition-opacity ${
+        isMobileOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+      }`}
+      onClick={closeMobileMenu}
+    />
+
+    {/* Desktop Sidebar (Original Layout) */}
+    <aside className="hidden lg:block bg-[#161D29] text-white w-[222px] min-h-screen overflow-y-auto">
+      <ul className="pt-7">
+        {menuItems.map((item) => (
+          <li key={item.name} className="w-auto">
+            <NavLink
+              to={item.href}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-3 rounded-sm transition-colors ${
+                  isActive && item.name !== "Log Out"
+                    ? "bg-[#19372C] text-[#54BD95] border-l-3 border-[#54BD95]"
+                    : "hover:bg-gray-800 text-[#838894]"
+                } text-sm`
+              }
+            >
+              <div className="h-4 w-4 flex-shrink-0">
+                <img src={item.icon} alt={item.name} className="h-full w-full object-contain" />
+              </div>
+              <span className="font-inter">{item.name}</span>
+            </NavLink>
+            {item.name === "About Investments" && (
+              <hr className="border-t-[1px] border-[#424854] w-[190px] mx-auto my-2" />
+            )}
+          </li>
+        ))}
+      </ul>
+    </aside>
+
+    {/* Mobile Sidebar */}
+    <div
+      className={`lg:hidden fixed left-0 top-[70px] h-[calc(100vh-70px)] w-[75%] bg-[#161D29] z-50 transform transition-transform ${
+        isMobileOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}
+    >
+      <ul className="pt-7 h-full overflow-y-auto">
+        {menuItems.map((item) => (
+          <li key={item.name} className="w-full">
+            <NavLink
+              to={item.href}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-3 rounded-sm transition-colors ${
+                  isActive && item.name !== "Log Out"
+                    ? "bg-[#19372C] text-[#54BD95] border-l-3 border-[#54BD95]"
+                    : "hover:bg-gray-800 text-[#838894]"
+                } text-sm`
+              }
+            >
+              <div className="h-4 w-4 flex-shrink-0">
+                <img src={item.icon} alt={item.name} className="h-full w-full object-contain" />
+              </div>
+              <span className="font-inter">{item.name}</span>
+            </NavLink>
+            {item.name === "About Investments" && (
+              <hr className="border-t-[1px] border-[#424854] w-[190px] mx-auto my-2" />
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  </>
 );
 
 export default Sidebar;

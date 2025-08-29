@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "./ui/button"
 import { Link } from "react-router-dom"
 import { Menu, X } from "lucide-react"
@@ -19,7 +19,7 @@ const Navigation = () => {
 
   return (
     <header className={`fixed top-0 w-[90%] max-w-7xl left-1/2 transform -translate-x-1/2 z-50 rounded-full transition-all bg-[#171717] text-white duration-300 ${isScrolled ? "shadow-md py-2" : "top-7 py-3"}`}>
-      <div className="max-w-7xl mx-auto lg:px-6">
+      <div className="max-w-7xl mx-auto lg:px-6 px-4">
         <nav className="flex items-center justify-between">
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-2" onClick={() => setIsMobileMenuOpen(false)}>
