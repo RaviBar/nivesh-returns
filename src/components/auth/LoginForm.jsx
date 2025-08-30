@@ -22,7 +22,8 @@ export default function LoginForm() {
         credentials: "include"
       });
       const data = await res.json();
-      if (data.success) {
+      if (data.success && data.token) {
+        localStorage.setItem("token", data.token);
         if (data.role === "admin") {
           navigate("/admin");
         } else {

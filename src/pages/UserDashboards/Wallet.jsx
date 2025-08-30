@@ -7,7 +7,43 @@ import squareIcon from "../../assets/squareIcon.svg";
 
 const WalletPage = () => {
   const [walletData, setWalletData] = useState(null);
+  const [depositAmount, setDepositAmount] = useState("");
+const [depositError, setDepositError] = useState("");
+const [depositSuccess, setDepositSuccess] = useState("");
 
+const handleDeposit = async () => {
+  setDepositError("");
+  setDepositSuccess("");
+
+  const amountNum = parseFloat(depositAmount);
+  if (isNaN(amountNum) || amountNum <= 0) {
+    setDepositError("Enter a valid amount");
+    return;
+  }
+
+  try {
+    const res = await fetch("http://localhost:5000/api/wallet/deposit", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify({ amount: amountNum, description: "Wallet Deposit" }),
+    });
+    const data = await res.json();
+
+    if (res.ok) {
+      setWalletBalance(data.walletBalance); // Update wallet
+      setDepositSuccess("Wallet credited successfully!");
+      setDepositAmount(""); // Clear input
+    } else {
+      setDepositError(data.error || "Something went wrong!");
+    }
+  } catch (err) {
+    console.error(err);
+    setDepositError("Something went wrong!");
+  }
+};
   useEffect(() => {
     const fetchWallet = async () => {
       try {
@@ -41,6 +77,26 @@ const WalletPage = () => {
 
       <h1 className="text-3xl font-medium mb-6 text-[#F1F2FF] px-4 lg:px-0">Wallet Overview</h1>
       <div className="grid grid-cols-1 gap-5 lg:p-8">
+      <Card className="p-6 mb-6 lg:w-[916px] lg:ml-10 mx-auto">
+  <h2 className="text-lg font-semibold text-white mb-4">Add Money to Wallet</h2>
+  <div className="flex flex-col md:flex-row gap-4">
+    <input
+      type="number"
+      value={depositAmount}
+      onChange={(e) => setDepositAmount(e.target.value)}
+      placeholder="Enter amount"
+      className="p-3 rounded-lg bg-[#2C333F] text-white focus:outline-none focus:ring-1 focus:ring-[#52BD94]"
+    />
+    <button
+      onClick={handleDeposit}
+      className="bg-[#52BD94] hover:bg-green-600 text-[#000814] px-4 py-2 rounded font-medium"
+    >
+      Deposit
+    </button>
+  </div>
+  {depositError && <p className="text-red-500 mt-2">{depositError}</p>}
+  {depositSuccess && <p className="text-green-500 mt-2">{depositSuccess}</p>}
+</Card>
 
         {/* Wallet Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 w-full lg:w-[916px] lg:ml-10 mx-auto">

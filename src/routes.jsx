@@ -4,6 +4,7 @@ import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import EmailVerificationPage from './pages/EmailVerification';
 import Profile from './pages/UserDashboards/Profile';
+import PlansPage from './pages/UserDashboards/PlansPage';
 import EditProfilePage from './pages/UserDashboards/EditProfile';
 import InvestmentsPage from './pages/UserDashboards/Investments';
 import WalletPage from './pages/UserDashboards/Wallet';
@@ -21,6 +22,7 @@ const AppRoutes = () => (
     </Route>
     <Route element={<UserDashboardLayout />}>
         <Route path="/user/dashboard/profile" element={<Profile />} />
+        <Route path="/user/dashboard/plans" element={<PlansPage />} />
         <Route path="/user/dashboard/edit-profile" element={<EditProfilePage />} />
         <Route path="/user/dashboard/investments" element={<InvestmentsPage />} />
         <Route path="/user/dashboard/wallet" element={<WalletPage />} />

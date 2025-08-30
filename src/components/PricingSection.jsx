@@ -1,38 +1,17 @@
 import React from "react";
 import { Button } from "./ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "./ui/card";
+import { useNavigate } from "react-router-dom";
 
 const PricingSection = () => {
+  const navigate = useNavigate();
   const handleBuyNow = async (amount, planName) => {
-    try {
-      // 1. Create Razorpay order from backend
-      const { data: order } = await axios.post("/api/payments/create-order", { amount });
-
-      // 2. Razorpay options
-      const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID, // from your .env
-        amount: order.amount,
-        currency: order.currency,
-        name: "Nivesh Returns",
-        description: planName,
-        order_id: order.id,
-        handler: async function (response) {
-          // 3. Verify payment with backend
-          await axios.post("/api/payments/verify-payment", response);
-
-          alert("✅ Payment Successful! Your investment is activated.");
-          // Optionally refresh dashboard data here
-        },
-        prefill: {
-          email: "user@example.com", // replace with logged-in user email
-        },
-      };
-
-      const razor = new window.Razorpay(options);
-      razor.open();
-    } catch (error) {
-      console.error("Payment Error:", error);
-      alert("Payment failed. Try again.");
+    const token = localStorage.getItem("token");
+    if (!token) {
+      alert("Please log in to purchase a plan.");
+      navigate("/signin");
+    } else {
+      navigate("/user/dashboard/plans");
     }
   };
   return (

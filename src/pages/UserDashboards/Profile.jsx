@@ -2,7 +2,38 @@ import Card from '../../components/user/Card';
 import { Link } from "react-router-dom";
 import newUserIcon from "../../assets/newUserIcon.svg"; 
 import editIcon from "../../assets/editIcon.svg"; 
+import { useEffect, useState } from "react";
+import axios from "axios";
 const Profile = () => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const { data } = await axios.get("http://localhost:5000/api/auth/profile", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          credentials: "include",
+        });
+        setUser(data);
+      } catch (error) {
+        console.error("Failed to fetch profile:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  if (loading) {
+    return <p className="text-white">Loading profile...</p>;
+  }
+
+  if (!user) {
+    return <p className="text-white">Could not load profile.</p>;
+  }
   return (
     <div className="flex-1 font-inter">
       <div className="text-sm text-[#838894] mb-3 px-4 lg:px-0">
@@ -21,15 +52,15 @@ const Profile = () => {
             <div className="flex items-center gap-6"> 
               {/* Profile Image */}
               <img
-                src={newUserIcon} // Use public path or import if in assets
+                src={user.profilePictureUrl || newUserIcon} // Use public path or import if in assets
                 alt="Profile Image"
                 width={78}
                 height={78}
                 className="rounded-full"
               />
             <div>
-              <h2 className="text-lg font-semibold text-white">Kaushal Kumar Anand</h2>
-              <p className="text-[#838894] text-sm font-regular">kaushal@niveshreturns.com</p>
+              <h2 className="text-lg font-semibold text-white">{`${user.firstName} ${user.lastName}`}</h2>
+              <p className="text-[#838894] text-sm font-regular">{user.email}</p>
             </div>
             </div>
             <button className="flex items-center gap-2 px-4 py-2 text-[#000814] bg-[#52BD94] hover:bg-green-600 rounded text-base font-medium">
@@ -62,22 +93,22 @@ const Profile = () => {
               <div className="space-y-4">
                 <div>
                   <label className="text-sm text-[#424854]">First Name</label>
-                  <p className="text-[#F1F2FF] text-sm font-medium">Kaushal Kumar</p>
+                  <p className="text-[#F1F2FF] text-sm font-medium">{user.firstName}</p>
                 </div>
                 <div>
                   <label className="text-sm text-[#424854]">Last Name</label>
-                  <p className="text-[#F1F2FF] text-sm font-medium">Anand</p>
+                  <p className="text-[#F1F2FF] text-sm font-medium">{user.lastName}</p>
                 </div>
               </div>
               
               <div className="space-y-4">
                 <div>
                   <label className="text-sm text-[#424854]">Email</label>
-                  <p className="text-[#F1F2FF] text-sm font-medium">kaushal@niveshreturns.com</p>
+                  <p className="text-[#F1F2FF] text-sm font-medium">{user.email}</p>
                 </div>
                 <div>
                   <label className="text-sm font-regular text-[#424854]">Phone Number</label>
-                  <p className="text-[#F1F2FF] text-sm font-medium">(+91) 12345 67890</p>
+                  <p className="text-[#F1F2FF] text-sm font-medium">{user.phone || 'Not provided'}</p>
                 </div>
               </div>
             </div>

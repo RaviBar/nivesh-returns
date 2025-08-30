@@ -67,5 +67,38 @@ router.post("/credit", authMiddleware, async (req, res) => {
   }
 });
 
+router.post("/debit", authMiddleware, async (req, res) => {
+  try {
+    const { amount, description } = req.body;
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ error: "Invalid amount" });
+    }
+
+    const user = await User.findById(req.user.id);
+
+    if (user.wallet < amount) {
+        return res.status(400).json({ error: "Insufficient funds" });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.id,
+      { $inc: { wallet: -amount } }, 
+      { new: true }
+    );
+
+    // Log the transaction in ledger
+    await Ledger.create({
+      user: req.user.id,
+      type: "debit",
+      amount,
+      description: description || "Plan Purchase",
+    });
+
+    res.json({ message: "Wallet debited successfully", walletBalance: updatedUser.wallet });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to debit wallet" });
+  }
+});
 
 export default router;

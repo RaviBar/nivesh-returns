@@ -38,7 +38,7 @@ const Navigation = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center font-inter space-x-8">
             <Link to="/" className="text-lg hover:text-[#A7E3B8]">Home</Link>
-            <Link to="/plans" className="text-lg hover:text-[#A7E3B8]">Plans</Link>
+            <Link to="/user/dashboard/plans" className="text-lg hover:text-[#A7E3B8]">Plans</Link>
             <Link to="/pricing" className="text-lg hover:text-[#A7E3B8]">Pricing</Link>
             <Link to="/contact" className="text-lg hover:text-[#A7E3B8]">Contact</Link>
           </div>
@@ -88,7 +88,7 @@ const Navigation = () => {
               Home
             </Link>
             <Link 
-              to="/plans" 
+              to="/user/dashboard/plans" 
               className="text-lg font-medium text-white hover:text-[#A7E3B8] py-2"
               onClick={() => setIsMobileMenuOpen(false)}
             >

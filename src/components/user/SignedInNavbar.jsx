@@ -24,7 +24,7 @@ const SignedInNavbar = ({ toggleMobileMenu }) => {
           </Link>
         </li>
         <li>
-          <Link to="/plans" className="hover:text-[#54BD95]">
+          <Link to="/user/dashboard/plans" className="hover:text-[#54BD95]">
             Plans
           </Link>
         </li>
