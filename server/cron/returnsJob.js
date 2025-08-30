@@ -1,39 +1,53 @@
+import cron from "node-cron";
 import Subscription from "../models/Subscription.js";
 import User from "../models/User.js";
 import Ledger from "../models/Ledger.js";
-import Investment from "../models/Investment.js";
+import Investment from "../models/Investments.js";
+
+export const initScheduledJobs = () => {
+  cron.schedule('0 0 * * *', async () => {
+    console.log("Running daily check for monthly returns...");
+    await creditMonthlyReturns();
+  });
+};
 
 export async function creditMonthlyReturns() {
-  const activeSubs = await Subscription.find({ status: "active" }).populate("plan user");
+    const today = new Date();
+  const activeSubs = await Subscription.find({
+    status: "active",
+    nextReturnDate: { $lte: today }
+  });
 
   for (const sub of activeSubs) {
-    const amount = sub.plan.monthlyReturn;
+    try {
+        const amount = sub.monthlyReturns;
+        await User.findByIdAndUpdate(sub.userId, {
+          $inc: { wallet: amount }
+        });
 
-    // Update user wallet
-    await User.findByIdAndUpdate(sub.user._id, {
-      $inc: { wallet: amount }
-    });
+        await Ledger.create({
+          user: sub.userId,
+          type: "credit",
+          amount,
+          description: `Monthly return for ${sub.planName}`
+        });
 
-    // Log in ledger
-    await Ledger.create({
-      user: sub.user._id,
-      type: "credit",
-      amount,
-      description: "Monthly return"
-    });
+        await Investment.findOneAndUpdate(
+          { userId: sub.userId },
+          { $inc: { totalEarned: amount } }
+        );
 
-    // Update Investment totalEarned
-    await Investment.findOneAndUpdate(
-      { user: sub.user._id },
-      { $inc: { totalEarned: amount } },
-      { new: true, upsert: true } // agar record na ho to create bhi ho jaye
-    );
+        const newNextReturnDate = new Date(sub.nextReturnDate);
+        newNextReturnDate.setMonth(newNextReturnDate.getMonth() + 1);
 
-    // Update Subscription earnedAmount (individual plan level)
-    await Subscription.findByIdAndUpdate(sub._id, {
-      $inc: { totalEarned: amount }
-    });
+        await Subscription.findByIdAndUpdate(sub._id, {
+          $inc: { totalEarned: amount },
+          nextReturnDate: newNextReturnDate
+        });
+        console.log(`Credited ${amount} to user ${sub.userId} for plan ${sub.planName}`);
+
+    } catch (error) {
+        console.error(`Failed to process return for subscription ${sub._id}:`, error);
+    }
   }
-
-  console.log("Monthly returns credited ✅");
 }

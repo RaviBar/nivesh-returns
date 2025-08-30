@@ -8,7 +8,8 @@ const subscriptionSchema = new mongoose.Schema({
   totalEarned: { type: Number, default: 0 },
   status: { type: String, enum: ["active", "awaiting_admin", "completed"], default: "active" },
   startDate: { type: Date, default: Date.now },
-  endDate: { type: Date }
+  endDate: { type: Date },
+  nextReturnDate: { type: Date }, 
 });
 
 export default mongoose.model("Subscription", subscriptionSchema);

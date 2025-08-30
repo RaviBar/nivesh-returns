@@ -1,45 +1,35 @@
 import express from "express";
 import Subscription from "../../models/Subscription.js";
-import Plan from "../../models/Plan.js";
 import { authMiddleware } from "../../middleware/auth.js";
 import mongoose from "mongoose";
-
 const router = express.Router();
 
 // Get user's investments
 router.get("/", authMiddleware, async (req, res) => {
   try {
-const subs = await Subscription.find({ userId: new mongoose.Types.ObjectId(req.user.id) })
-  .sort({ createdAt: -1 });
-      console.log("User ID from token:", req.user.id);
-      console.log(subs);
-    if (!subs.length) {
-      return res.json({
-        totalInvestment: 0,
-        totalEarned: 0,
-        activePlans: 0,
-        subscriptions: [],
-      });
-    }
-
-    const activeSubs = subs.filter(s => s.status === "active");
+    const userId = new mongoose.Types.ObjectId(req.user.id);
+    const allSubs = await Subscription.find({ userId }).sort({ createdAt: -1 });
+    const activeSubs = allSubs.filter(s => s.status === "active");
 
     const totalInvestment = activeSubs.reduce(
       (sum, s) => sum + (s.amount || 0),
       0
     );
-    const totalEarned = activeSubs.reduce(
-      (sum, s) => sum + (s.monthlyReturns || 0),
+    const totalEarned = allSubs.reduce(
+      (sum, s) => sum + (s.totalEarned || 0),
       0
     );
     const activePlans = activeSubs.length;
 
-    const subscriptions = subs.map(s => ({
-      planName: s.planName || "Unknown",
+    const subscriptions = allSubs.map(s => ({
+      _id: s._id,
+      planName: s.planName,
       status: s.status,
-      amount: s.amount || 0,
-      monthlyReturns: s.monthlyReturns || 0,
-      activePlan: s.status === "active" ? 1 : 0,
+      amount: s.amount,
+      monthlyReturns: s.monthlyReturns,
+      startDate: s.startDate,
+      nextReturnDate: s.nextReturnDate,
+      totalEarned: s.totalEarned
     }));
 
     res.json({

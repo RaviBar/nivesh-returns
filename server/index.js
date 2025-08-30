@@ -9,6 +9,7 @@ import authRoutes from "./api/routes/auth.js";
 import { connectDB } from "./db.js";
 import investmentRoutes from "./api/routes/investment.js";
 import paymentRoutes from "./api/routes/paymentRoutes.js";
+import { initScheduledJobs } from "./cron/returnsJob.js";
 
 const app = express();
 
@@ -28,5 +29,7 @@ app.use("/api/wallet", walletRoutes);
 app.use("/api", paymentRoutes);
 app.use("/api/investments", investmentRoutes);
 app.use("/api/auth", authRoutes);
+
+initScheduledJobs();
 
 app.listen(5000, () => console.log("Server running on port 5000"));

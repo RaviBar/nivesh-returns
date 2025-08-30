@@ -8,38 +8,6 @@ import crypto from "crypto";
 
 const router = express.Router();
 
-// router.post("/dummy-purchase", authMiddleware, async (req, res) => {
-//   try {
-  //     console.log("🟢 Body received:", req.body);
-  //     const { planName, amount, monthlyReturns, totalEarned, status, startDate, endDate } = req.body;
-  //     const userId = req.user.id;
-
-//     if (!planName || !amount || !monthlyReturns) {
-//       return res.status(400).json({ error: "planName, amount and monthlyReturns are required" });
-//     }
-
-//     // Direct subscription create
-//     const subscription = await Subscription.create({
-//       userId,
-//       planName,
-//       amount,
-//       monthlyReturns,
-//       totalEarned: totalEarned || 0,
-//       status: status || "active",
-//       startDate: startDate || Date.now(),
-//       endDate: endDate || null,
-//     });
-
-//     res.json({
-//       message: "Dummy purchase successful!",
-//       subscription,
-//     });
-//   } catch (err) {
-//     console.error("❌ Subscription error:", err);
-//     res.status(500).json({ error: "Something went wrong" });
-//   }
-// });
-
 // Create Razorpay order
 router.post("/create-order", authMiddleware, async (req, res) => {
   try {
@@ -109,6 +77,10 @@ router.post("/purchase-plan", authMiddleware, async (req, res) => {
     user.wallet -= plan.amount;
     await user.save();
 
+    const startDate = new Date();
+    const nextReturnDate = new Date(startDate);
+    nextReturnDate.setMonth(nextReturnDate.getMonth() + 1);
+
     // Create subscription
     await Subscription.create({
         userId,
@@ -116,6 +88,8 @@ router.post("/purchase-plan", authMiddleware, async (req, res) => {
         amount: plan.amount,
         monthlyReturns: plan.monthlyReturn,
         status: "active",
+        startDate: startDate,
+        nextReturnDate: nextReturnDate,
     });
 
     // Update total invested amount
