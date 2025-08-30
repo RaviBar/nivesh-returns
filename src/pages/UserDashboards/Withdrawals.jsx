@@ -1,22 +1,75 @@
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Card from "../../components/user/Card";
 import { Link } from "react-router-dom";
+import axios from "axios";
 
 const WithdrawalsPage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
-
+  const [user, setUser] = useState(null);
+  const [bankDetails, setBankDetails] = useState({
+    accountHolderName: "",
+    bankName: "",
+    accountNumber: "",
+    ifscCode: "",
+  });
+  const [loading, setLoading] = useState(true);
+  const fetchProfile = async () => {
+    try {
+      const { data } = await axios.get("http://localhost:5000/api/auth/profile", {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      setUser(data);
+      setBankDetails({
+        accountHolderName: data.accountHolderName || "",
+        bankName: data.bankName || "",
+        accountNumber: data.accountNumber || "",
+        ifscCode: data.ifscCode || "",
+      });
+    } catch (error) {
+      console.error("Failed to fetch profile:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+  const handleChange = (e) => {
+    setBankDetails({ ...bankDetails, [e.target.name]: e.target.value });
+  };
   const handleEdit = () => setIsEditing(true);
 
   const handleCancel = () => setShowCancelModal(true);
 
   const handleDiscard = () => {
+    setBankDetails({
+      accountHolderName: user.accountHolderName || "",
+      bankName: user.bankName || "",
+      accountNumber: user.accountNumber || "",
+      ifscCode: user.ifscCode || "",
+    });
     setIsEditing(false);
     setShowCancelModal(false);
   };
 
   const handleKeepEditing = () => setShowCancelModal(false);
-
+  const handleSave = async () => {
+    try {
+      await axios.put("http://localhost:5000/api/auth/profile", bankDetails, {
+         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      alert("Bank details updated successfully!");
+      setIsEditing(false);
+      fetchProfile(); // Re-fetch to show updated data
+    } catch (error) {
+      console.error("Failed to update bank details:", error);
+      alert(error.response?.data?.error || "Failed to update details.");
+    }
+  };
+  if (loading) {
+    return <p className="text-white">Loading...</p>;
+  }
   return (
     <div className="flex-1 font-inter">
       {/* Breadcrumb */}
@@ -33,41 +86,49 @@ const WithdrawalsPage = () => {
 
       <div className="pt-8 lg:w-[792px]">
         {/* Saved Withdrawal Methods */}
-        <Card className="lg:h-[226px]">
-  <div className="p-4 lg:p-6">
-    <h2 className="text-lg font-semibold text-[#F1F2FF] mb-5">Saved Withdrawal Methods</h2>
-    <div className="text-[#F1F2FF] text-base mb-5">Bank Account Details</div>
-    <div className="flex flex-col gap-y-2.5 text-sm w-full lg:w-[306px]">
-      <div className="flex justify-between">
-        <span className="text-[#FFFFFF]">Join Carter</span>
-        <span className="text-[#666D80] text-right">State Bank Of India</span>
-      </div>
-      <div className="flex justify-between">
-        <span className="text-[#FFFFFF]">A/C</span>
-        <span className="text-[#666D80] text-right">XXXXX3466</span>
-      </div>
-      <div className="flex justify-between">
-        <span className="text-[#FFFFFF]">IFSC Code</span>
-        <span className="text-[#666D80] text-right">ABCD00123456</span>
-      </div>
-    </div>
-  </div>
-</Card>
+        <Card className="lg:h-auto">
+          <div className="p-4 lg:p-6">
+            <h2 className="text-lg font-semibold text-[#F1F2FF] mb-5">Saved Withdrawal Methods</h2>
+            <div className="text-[#F1F2FF] text-base mb-5">Bank Account Details</div>
+            {bankDetails.accountNumber ? (
+              <div className="flex flex-col gap-y-2.5 text-sm w-full lg:w-[306px]">
+                <div className="flex justify-between">
+                  <span className="text-[#FFFFFF]">Account Holder</span>
+                  <span className="text-[#666D80] text-right">{bankDetails.accountHolderName}</span>
+                </div>
+                 <div className="flex justify-between">
+                  <span className="text-[#FFFFFF]">Bank Name</span>
+                  <span className="text-[#666D80] text-right">{bankDetails.bankName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#FFFFFF]">A/C</span>
+                  <span className="text-[#666D80] text-right">XXXXX{bankDetails.accountNumber.slice(-4)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-[#FFFFFF]">IFSC Code</span>
+                  <span className="text-[#666D80] text-right">{bankDetails.ifscCode}</span>
+                </div>
+              </div>
+            ) : (
+              <p className="text-gray-400">No bank details saved. Please add them.</p>
+            )}
+          </div>
+        </Card>
         <div className="flex justify-end w-full lg:w-[792px]">
           <button
             className="text-[#000814] px-4 lg:px-6 mt-4 lg:mt-6 py-2 lg:py-3 bg-[#52BD94] hover:bg-green-600 rounded text-sm lg:text-base font-medium"
             onClick={handleEdit}
           >
-            Edit
+            {bankDetails.accountNumber ? "Edit" : "Add Details"}
           </button>
         </div>
 
         {/* Add/Edit Withdrawal Method */}
-        {isEditing && (
+        {(isEditing || !bankDetails.accountNumber) && (
           <>
-            <Card className="mt-6 lg:mt-12 h-auto lg:h-[338px]">
+            <Card className="mt-6 lg:mt-12 h-auto">
               <div className="p-4 lg:p-6">
-                <h2 className="text-lg font-semibold text-white mb-5">Add/Edit Withdrawal Method</h2>
+                <h2 className="text-lg font-semibold text-white mb-5">{bankDetails.accountNumber ? "Edit" : "Add"} Withdrawal Method</h2>
                 <div className="space-y-5">
                   <div className="text-[#F1F2FF] text-base">Bank Account Details</div>
                   {/* Form Grid */}
@@ -77,7 +138,22 @@ const WithdrawalsPage = () => {
                       <div className="text-[#F1F2FF]">Account Holder Name</div>
                       <input
                         type="text"
+                        name="accountHolderName"
+                        value={bankDetails.accountHolderName}
+                        onChange={handleChange}
                         placeholder="John Singh"
+                        className="w-full bg-[#2C333F] rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-[#52BD94]"
+                      />
+                    </div>
+                     {/* Bank Name */}
+                    <div className="space-y-2">
+                      <div className="text-[#F1F2FF]">Bank Name</div>
+                      <input
+                        type="text"
+                        name="bankName"
+                        value={bankDetails.bankName}
+                        onChange={handleChange}
+                        placeholder="State Bank of India"
                         className="w-full bg-[#2C333F] rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-[#52BD94]"
                       />
                     </div>
@@ -86,19 +162,10 @@ const WithdrawalsPage = () => {
                       <div className="text-[#F1F2FF]">Account Number</div>
                       <input
                         type="text"
+                        name="accountNumber"
+                        value={bankDetails.accountNumber}
+                        onChange={handleChange}
                         placeholder="********"
-                        className="w-full bg-[#2C333F] rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-[#52BD94]"
-                      />
-                      <p className="text-[#585D69] text-xs">
-                        Name entered above will be used for all issued certificates.
-                      </p>
-                    </div>
-                    {/* Bank Name */}
-                    <div className="space-y-2">
-                      <div className="text-[#F1F2FF]">Bank Name</div>
-                      <input
-                        type="text"
-                        placeholder="State Bank of India"
                         className="w-full bg-[#2C333F] rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-[#52BD94]"
                       />
                     </div>
@@ -107,6 +174,9 @@ const WithdrawalsPage = () => {
                       <div className="text-[#F1F2FF]">IFSC Code</div>
                       <input
                         type="text"
+                        name="ifscCode"
+                        value={bankDetails.ifscCode}
+                        onChange={handleChange}
                         placeholder="ABCD00123456"
                         className="w-full bg-[#2C333F] rounded-lg p-3 text-white focus:outline-none focus:ring-1 focus:ring-[#52BD94]"
                       />
@@ -123,7 +193,7 @@ const WithdrawalsPage = () => {
               >
                 Cancel
               </button>
-              <button className="text-[#000814] bg-[#52BD94] hover:bg-[#3fa37d] font-medium px-4 lg:px-6 py-2 lg:py-3 rounded-lg transition-colors">
+              <button onClick={handleSave} className="text-[#000814] bg-[#52BD94] hover:bg-[#3fa37d] font-medium px-4 lg:px-6 py-2 lg:py-3 rounded-lg transition-colors">
                 Save
               </button>
             </div>

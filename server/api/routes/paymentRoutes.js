@@ -2,6 +2,7 @@ import express from "express";
 import razorpay from "../../config/razorpay.js";
 import Subscription from "../../models/Subscription.js";
 import User from "../../models/User.js";
+import Investment from "../../models/Investments.js";
 import { authMiddleware } from "../../middleware/auth.js";
 import crypto from "crypto";
 
@@ -42,10 +43,10 @@ const router = express.Router();
 // Create Razorpay order
 router.post("/create-order", authMiddleware, async (req, res) => {
   try {
-    const { amount, planName } = req.body;
+    const { amount } = req.body;
 
-    if (!amount || !planName) {
-        return res.status(400).json({ error: "Amount and Plan Name are required." });
+    if (!amount) {
+        return res.status(400).json({ error: "Amount is required." });
     }
 
     const options = {
@@ -53,7 +54,6 @@ router.post("/create-order", authMiddleware, async (req, res) => {
       currency: "INR",
       receipt: `receipt_order_${new Date().getTime()}`,
       notes: {
-        planName: planName,
         userId: req.user.id,
       }
     };
@@ -67,9 +67,9 @@ router.post("/create-order", authMiddleware, async (req, res) => {
 });
 
 
-// Verify payment
-router.post("/verify-payment", authMiddleware, async (req, res) => {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, plan } = req.body;
+// Verify payment and add funds to wallet
+router.post("/deposit", authMiddleware, async (req, res) => {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, amount } = req.body;
 
     const body = razorpay_order_id + "|" + razorpay_payment_id;
 
@@ -81,20 +81,9 @@ router.post("/verify-payment", authMiddleware, async (req, res) => {
     const isAuthentic = expectedSignature === razorpay_signature;
 
     if (isAuthentic) {
-        // Payment is authentic, now create the subscription and update the user's wallet.
-        
-        // Add amount to wallet
+        // Payment is authentic, now update the user's wallet.
         await User.findByIdAndUpdate(req.user.id, {
-            $inc: { wallet: plan.amount }
-        });
-
-        // Create subscription
-        await Subscription.create({
-            userId: req.user.id,
-            planName: plan.name,
-            amount: plan.amount,
-            monthlyReturns: plan.monthlyReturn,
-            status: "active",
+            $inc: { wallet: amount }
         });
 
         res.json({ success: true, orderId: razorpay_order_id, paymentId: razorpay_payment_id });
@@ -104,53 +93,44 @@ router.post("/verify-payment", authMiddleware, async (req, res) => {
     }
 });
 
-// router.post("/purchase-wallet", authMiddleware, async (req, res) => {
-//   try {
-//     const { planId } = req.body;
-//     const userId = req.user.id;
+// Purchase a plan using wallet balance
+router.post("/purchase-plan", authMiddleware, async (req, res) => {
+  try {
+    const { plan } = req.body;
+    const userId = req.user.id;
 
-//     if (!planId) return res.status(400).json({ error: "planId is required" });
+    const user = await User.findById(userId);
 
-//     // Fetch plan
-//     const plan = await Plan.findById(planId);
-//     if (!plan) return res.status(404).json({ error: "Plan not found" });
+    if (user.wallet < plan.amount) {
+      return res.status(400).json({ error: "Insufficient wallet balance" });
+    }
 
-//     // Fetch user
-//     const user = await User.findById(userId);
-//     if (!user) return res.status(404).json({ error: "User not found" });
+    // Deduct plan amount from wallet
+    user.wallet -= plan.amount;
+    await user.save();
 
-//     // Check wallet balance
-//     if (user.wallet < plan.amount)
-//       return res.status(400).json({ error: "Insufficient wallet balance" });
+    // Create subscription
+    await Subscription.create({
+        userId,
+        planName: plan.name,
+        amount: plan.amount,
+        monthlyReturns: plan.monthlyReturn,
+        status: "active",
+    });
 
-//     // Deduct wallet balance
-//     user.wallet -= plan.amount;
-//     await user.save();
+    // Update total invested amount
+    await Investment.findOneAndUpdate(
+      { userId },
+      { $inc: { totalInvested: plan.amount, activePlans: 1 } },
+      { upsert: true, new: true }
+    );
 
-//     // Log in Ledger
-//     await Ledger.create({
-//       user: userId,
-//       type: "debit",
-//       amount: plan.amount,
-//       description: `Purchase Plan: ${plan.name}`,
-//     });
+    res.json({ success: true, message: "Plan purchased successfully!" });
+  } catch (err) {
+    console.error("Error purchasing plan:", err);
+    res.status(500).json({ error: "Something went wrong" });
+  }
+});
 
-//     // Create subscription
-//     const subscription = await Subscription.create({
-//       userId,
-//       planName: plan.name,
-//       amount: plan.amount,
-//       monthlyReturns: plan.monthlyReturn,
-//       totalEarned: 0,
-//       status: "active",
-//       startDate: Date.now(),
-//     });
-
-//     res.json({ message: "Plan purchased successfully!", subscription });
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ error: "Failed to purchase plan" });
-//   }
-// });
 
 export default router;

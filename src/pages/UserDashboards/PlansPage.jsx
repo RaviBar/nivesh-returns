@@ -1,66 +1,51 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "../../components/ui/card";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const PlansPage = () => {
+  const navigate = useNavigate();
+  const [walletBalance, setWalletBalance] = useState(0);
+
+  useEffect(() => {
+    const fetchWalletBalance = async () => {
+      try {
+        const { data } = await axios.get("http://localhost:5000/api/wallet", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        setWalletBalance(data.walletBalance);
+      } catch (error) {
+        console.error("Failed to fetch wallet balance:", error);
+      }
+    };
+    fetchWalletBalance();
+  }, []);
+
 
   const handleBuyNow = async (plan) => {
     try {
-      // 1. Create Razorpay order from backend
-      const { data: order } = await axios.post("http://localhost:5000/api/create-order", 
-      { 
-        amount: plan.amount,
-        planName: plan.name
-      }, 
+      if (walletBalance < plan.amount) {
+        alert("Insufficient wallet balance. Please top up your wallet.");
+        navigate("/user/dashboard/wallet");
+        return;
+      }
+
+      await axios.post("http://localhost:5000/api/purchase-plan",
+      { plan },
       {
         headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        credentials: "include",
       });
 
-      // 2. Razorpay options
-      const options = {
-        key: "rzp_test_RBWTNSJF2mGBao", // Replace with your actual Key ID
-        amount: order.amount,
-        currency: order.currency,
-        name: "Nivesh Returns",
-        description: `Purchase of ${plan.name}`,
-        order_id: order.id,
-        handler: async function (response) {
-          // 3. Verify payment with backend
-          await axios.post("http://localhost:5000/api/verify-payment", {
-            ...response,
-            plan: plan
-          },
-          {
-             headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-            credentials: "include",
-          });
-
-          alert("✅ Payment Successful! Your investment is activated.");
-        },
-        prefill: {
-          name: "Your Name", // Fetch from user profile if available
-          email: "your.email@example.com", // Fetch from user profile
-          contact: "9999999999" // Fetch from user profile
-        },
-        notes: {
-            address: "Nivesh Returns Corporate Office"
-        },
-        theme: {
-            color: "#25703A"
-        }
-      };
-
-      const razor = new window.Razorpay(options);
-      razor.open();
+      alert("✅ Plan purchased successfully! Your investment is activated.");
+      // Optionally, refresh wallet balance and investment data
     } catch (error) {
-      console.error("Payment Error:", error);
-      alert("Payment failed. Try again.");
+      console.error("Purchase Error:", error);
+      alert(error.response?.data?.error || "Purchase failed. Try again.");
     }
   };
 

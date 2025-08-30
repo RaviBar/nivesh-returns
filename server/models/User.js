@@ -14,6 +14,10 @@ const userSchema = new mongoose.Schema({
   gender: { type: String, enum: ["Male", "Female", "Other"] },
   about: { type: String },
   profilePictureUrl: { type: String, default: "" },
+  accountHolderName: { type: String, default: "" },
+  bankName: { type: String, default: "" },
+  accountNumber: { type: String, default: "" },
+  ifscCode: { type: String, default: "" },
 });
 
 const User = mongoose.model("User", userSchema);

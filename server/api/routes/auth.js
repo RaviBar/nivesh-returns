@@ -53,11 +53,13 @@
 
   router.put("/profile", authMiddleware, async (req, res) => {
       try {
-          const { firstName, lastName, phone, profession, dob, gender, about, profilePictureUrl } = req.body;
+          const { firstName, lastName, phone, profession, dob, gender, about, profilePictureUrl,
+              accountHolderName, bankName, accountNumber, ifscCode } = req.body;
           
           const user = await User.findByIdAndUpdate(
               req.user.id,
-              { firstName, lastName, phone, profession, dob, gender, about, profilePictureUrl },
+              { firstName, lastName, phone, profession, dob, gender, about, profilePictureUrl,
+                  accountHolderName, bankName, accountNumber, ifscCode },
               { new: true, runValidators: true }
           ).select("-password");
 

@@ -1,13 +1,14 @@
 import express from "express";
-import { authMiddleware  } from "../../middleware/auth.js"; 
+import { authMiddleware  } from "../../middleware/auth.js";
 import User from "../../models/User.js";
 import Ledger from "../../models/Ledger.js";
+import Withdrawal from "../../models/Withdrawals.js";
 
 const router = express.Router();
 
 router.get("/", authMiddleware, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("wallet"); 
+    const user = await User.findById(req.user.id).select("wallet");
 
     if (!user) return res.status(404).json({ error: "User not found" });
 
@@ -82,7 +83,7 @@ router.post("/debit", authMiddleware, async (req, res) => {
 
     const updatedUser = await User.findByIdAndUpdate(
       req.user.id,
-      { $inc: { wallet: -amount } }, 
+      { $inc: { wallet: -amount } },
       { new: true }
     );
 
@@ -100,5 +101,37 @@ router.post("/debit", authMiddleware, async (req, res) => {
     res.status(500).json({ error: "Failed to debit wallet" });
   }
 });
+
+router.post("/withdraw", authMiddleware, async (req, res) => {
+    try {
+        const { amount, bankDetails } = req.body;
+        const userId = req.user.id;
+
+        if (!amount || amount <= 0) {
+            return res.status(400).json({ error: "Invalid amount" });
+        }
+
+        const user = await User.findById(userId);
+
+        if (user.wallet < amount) {
+            return res.status(400).json({ error: "Insufficient funds" });
+        }
+
+        // Create a withdrawal request
+        const withdrawal = await Withdrawal.create({
+            user: userId,
+            amount,
+            bankDetails,
+            status: "pending"
+        });
+
+        res.json({ success: true, message: "Withdrawal request submitted successfully.", withdrawal });
+
+    } catch (err) {
+        console.error("Error submitting withdrawal request:", err);
+        res.status(500).json({ error: "Something went wrong" });
+    }
+});
+
 
 export default router;
