@@ -3,6 +3,7 @@ import razorpay from "../../config/razorpay.js";
 import Subscription from "../../models/Subscription.js";
 import User from "../../models/User.js";
 import Investment from "../../models/Investments.js";
+import Ledger from "../../models/Ledger.js";
 import { authMiddleware } from "../../middleware/auth.js";
 import crypto from "crypto";
 
@@ -54,6 +55,22 @@ router.post("/deposit", authMiddleware, async (req, res) => {
             $inc: { wallet: amount }
         });
 
+        await Ledger.create({
+            user: req.user.id,
+            type: "credit",
+            amount,
+            description: "Wallet Deposit",
+        });
+        await Investment.findOneAndUpdate(
+            { userId: req.user.id },
+            { $inc: { totalDeposited: amount } },
+            { upsert: true, new: true }
+        );
+        res.json({
+            success: true,
+            walletBalance: user.wallet,
+            message: "Deposit successful",
+        });
         res.json({ success: true, orderId: razorpay_order_id, paymentId: razorpay_payment_id });
 
     } else {

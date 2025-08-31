@@ -9,6 +9,8 @@ const userSchema = new mongoose.Schema({
   role: { type: String, enum: ["user", "admin"], default: "user" },
   kycStatus: { type: String, enum: ["pending", "verified", "rejected"], default: "pending" },
   wallet: { type: Number, default: 0 },
+  totalDeposited: { type: Number, default: 0 },
+  totalWithdrawn: { type: Number, default: 0 },
   profession: { type: String },
   dob: { type: Date },
   gender: { type: String, enum: ["Male", "Female", "Other"] },

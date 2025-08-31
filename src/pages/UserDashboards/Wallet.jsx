@@ -170,7 +170,7 @@ const WalletPage = () => {
               <div>
                 <h3 className="text-[#666D80] text-sm mb-[10px]">Wallet Balance</h3>
                 <p className="text-xl font-semibold text-white">
-                  RS. {walletData.walletBalance}
+                  ₹ {walletData.walletBalance}
                 </p>
               </div>
             </div>
@@ -180,9 +180,9 @@ const WalletPage = () => {
             <div className="px-6 py-6 flex items-center gap-[22px] h-full">
               <img src={upgraphIcon} alt="Deposits" className="w-[40px] h-[24px]" />
               <div>
-                <h3 className="text-[#666D80] text-sm mb-[10px]">Total Earned</h3>
+                <h3 className="text-[#666D80] text-xs mb-[10px]">Total Deposited</h3>
                 <p className="text-xl font-semibold text-white">
-                  RS. {walletData.totalEarned}
+                  ₹ {walletData.totalDeposited}
                 </p>
               </div>
             </div>
@@ -194,7 +194,7 @@ const WalletPage = () => {
               <div>
                 <h3 className="text-[#666D80] text-sm mb-[10px]">Withdrawn</h3>
                 <p className="text-xl font-semibold text-white">
-                  RS. {walletData.totalWithdrawn}
+                  ₹ {walletData.totalWithdrawn}
                 </p>
               </div>
             </div>
