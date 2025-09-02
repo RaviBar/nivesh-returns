@@ -44,4 +44,24 @@ router.get("/", authMiddleware, async (req, res) => {
   }
 });
 
+// Request to cancel a subscription
+router.post('/subscriptions/:id/request-cancellation', authMiddleware, async (req, res) => {
+    try {
+        const sub = await Subscription.findOneAndUpdate(
+            { _id: req.params.id, userId: req.user.id, status: 'active' },
+            { status: 'cancellation_requested' },
+            { new: true }
+        );
+
+        if (!sub) {
+            return res.status(404).json({ error: "Active subscription not found." });
+        }
+
+        res.json({ success: true, message: "Cancellation requested. Admin will review." });
+    } catch (err) {
+        console.error("Error requesting subscription cancellation:", err);
+        res.status(500).json({ error: "Failed to request cancellation." });
+    }
+});
+
 export default router;

@@ -1,17 +1,18 @@
 import { useEffect, useState } from "react";
 import Card from "../../components/user/Card";
-import { Link } from "react-router-dom";
-import upgraphIcon from "../../assets/upgraphIcon.svg";
-import downgraphIcon from "../../assets/downgraphIcon.svg";
+import { Link, useNavigate } from "react-router-dom";
+import upgraphIcon from "../../assets/upGraphIcon.svg";
+import downgraphIcon from "../../assets/downGraphIcon.svg";
 import squareIcon from "../../assets/squareIcon.svg";
 import axios from "axios";
 
 
 const WalletPage = () => {
+  const navigate = useNavigate();
   const [walletData, setWalletData] = useState(null);
+  const [user, setUser] = useState(null);
   const [depositAmount, setDepositAmount] = useState("");
   const [withdrawalAmount, setWithdrawalAmount] = useState("");
-  const [bankDetails, setBankDetails] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -54,7 +55,7 @@ const WalletPage = () => {
                 });
                 setSuccess("Wallet credited successfully!");
                 setDepositAmount("");
-                fetchWallet(); // Refresh wallet data
+                fetchData(); // Refresh wallet data
             },
             theme: {
                 color: "#25703A"
@@ -80,8 +81,9 @@ const WalletPage = () => {
         return;
     }
 
-    if (!bankDetails) {
-        setError("Please provide bank details for withdrawal.");
+    if (!user || !user.accountNumber) {
+        setError("Please add your bank account details on the Withdrawals page before requesting a withdrawal.");
+        navigate('/user/dashboard/withdrawals');
         return;
     }
 
@@ -89,7 +91,6 @@ const WalletPage = () => {
     try {
         const res = await axios.post("http://localhost:5000/api/wallet/withdraw", {
                 amount: amountNum,
-                bankDetails,
             },
             {
                 headers: {
@@ -99,37 +100,42 @@ const WalletPage = () => {
         );
 
         if (res.data.success) {
-            setSuccess("Withdrawal request submitted successfully!");
+            setSuccess("Withdrawal request submitted successfully! It will be processed after admin approval.");
             setWithdrawalAmount("");
-            fetchWallet();
+            fetchData();
         } else {
             setError(res.data.error || "Something went wrong!");
         }
     } catch (err) {
         console.error(err);
-        setError("Something went wrong!");
+        setError(err.response?.data?.error || "Something went wrong!");
     }
   };
 
-  const fetchWallet = async () => {
+  const fetchData = async () => {
     try {
-      const { data } = await axios.get("http://localhost:5000/api/wallet", {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+      const token = localStorage.getItem("token");
+      const walletRes = await axios.get("http://localhost:5000/api/wallet", {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      setWalletData(data);
+      setWalletData(walletRes.data);
+
+      const profileRes = await axios.get("http://localhost:5000/api/auth/profile", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setUser(profileRes.data);
+
     } catch (err) {
-      console.error("Failed to fetch wallet:", err);
+      console.error("Failed to fetch data:", err);
     }
   };
 
 
   useEffect(() => {
-    fetchWallet();
+    fetchData();
   }, []);
 
-  if (!walletData) return <p className="text-white">Loading...</p>;
+  if (!walletData || !user) return <p className="text-white">Loading...</p>;
 
   return (
     <div className="flex-1 font-inter">
@@ -215,36 +221,47 @@ const WalletPage = () => {
           </Card>
         </div>
         <Card className="p-6 mb-6 lg:w-[916px] lg:ml-10 mx-auto">
-            <h2 className="text-lg font-semibold text-white mb-4">Withdraw Funds</h2>
-            <div className="flex flex-col md:flex-row gap-4">
-                <input
-                    type="number"
-                    value={withdrawalAmount}
-                    onChange={(e) => setWithdrawalAmount(e.target.value)}
-                    placeholder="Enter amount"
-                    className="p-3 rounded-lg bg-[#2C333F] text-white focus:outline-none focus:ring-1 focus:ring-[#52BD94]"
-                />
-                <input
-                    type="text"
-                    value={bankDetails}
-                    onChange={(e) => setBankDetails(e.target.value)}
-                    placeholder="Enter Bank Details (e.g., Account Number, IFSC)"
-                    className="p-3 rounded-lg bg-[#2C333F] text-white focus:outline-none focus:ring-1 focus:ring-[#52BD94] flex-grow"
-                />
-                <button
-                    onClick={handleWithdraw}
-                    className="bg-[#52BD94] hover:bg-green-600 text-[#000814] px-4 py-2 rounded font-medium"
-                >
-                    Withdraw
-                </button>
-            </div>
+            <h2 className="text-lg font-semibold text-white mb-4">Request a Withdrawal</h2>
+            {user.accountNumber ? (
+              <>
+                <div className="mb-4 p-3 bg-[#2C333F] rounded-lg">
+                  <p className="text-sm text-gray-400">Withdraw to:</p>
+                  <p className="text-white font-semibold">{user.accountHolderName} - {user.bankName} (Ending in {user.accountNumber.slice(-4)})</p>
+                </div>
+                <div className="flex flex-col md:flex-row gap-4">
+                    <input
+                        type="number"
+                        value={withdrawalAmount}
+                        onChange={(e) => setWithdrawalAmount(e.target.value)}
+                        placeholder="Enter amount to withdraw"
+                        className="p-3 rounded-lg bg-[#2C333F] text-white focus:outline-none focus:ring-1 focus:ring-[#52BD94] flex-grow"
+                    />
+                    <button
+                        onClick={handleWithdraw}
+                        className="bg-[#52BD94] hover:bg-green-600 text-[#000814] px-4 py-2 rounded font-medium"
+                    >
+                        Request Withdrawal
+                    </button>
+                </div>
+              </>
+            ) : (
+              <div className="text-center">
+                  <p className="text-gray-400 mb-4">You need to add a bank account before you can withdraw funds.</p>
+                  <Link to="/user/dashboard/withdrawals">
+                      <button className="bg-[#52BD94] hover:bg-green-600 text-[#000814] px-6 py-3 rounded font-medium">
+                          Add Bank Account
+                      </button>
+                  </Link>
+              </div>
+            )}
         </Card>
 
-        {error && <p className="text-red-500 mt-2">{error}</p>}
-        {success && <p className="text-green-500 mt-2">{success}</p>}
-
-
-        
+        {(error || success) && (
+            <div className="lg:w-[916px] lg:ml-10 mx-auto">
+                {error && <p className="text-red-500 mt-2 p-3 bg-red-500/10 rounded-lg">{error}</p>}
+                {success && <p className="text-green-500 mt-2 p-3 bg-green-500/10 rounded-lg">{success}</p>}
+            </div>
+        )}
       </div>
     </div>
   );

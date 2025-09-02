@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 const PlansPage = () => {
   const navigate = useNavigate();
   const [walletBalance, setWalletBalance] = useState(0);
+  const [feedback, setFeedback] = useState({ message: '', type: '' });
 
   useEffect(() => {
     const fetchWalletBalance = async () => {
@@ -26,14 +27,15 @@ const PlansPage = () => {
 
 
   const handleBuyNow = async (plan) => {
+    setFeedback({ message: '', type: '' }); // Clear previous feedback
     try {
       if (walletBalance < plan.amount) {
-        alert("Insufficient wallet balance. Please top up your wallet.");
-        navigate("/user/dashboard/wallet");
+        setFeedback({ message: "Insufficient wallet balance. Please top up your wallet.", type: 'error' });
+        setTimeout(() => navigate("/user/dashboard/wallet"), 3000);
         return;
       }
 
-      await axios.post("http://localhost:5000/api/purchase-plan",
+      const { data } = await axios.post("http://localhost:5000/api/purchase-plan",
       { plan },
       {
         headers: {
@@ -41,11 +43,16 @@ const PlansPage = () => {
         },
       });
 
-      alert("✅ Plan purchased successfully! Your investment is activated.");
-      // Optionally, refresh wallet balance and investment data
+      setFeedback({ message: data.message, type: 'success' });
+      // Refresh wallet balance after purchase
+      const updatedWallet = await axios.get("http://localhost:5000/api/wallet", {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      setWalletBalance(updatedWallet.data.walletBalance);
+
     } catch (error) {
       console.error("Purchase Error:", error);
-      alert(error.response?.data?.error || "Purchase failed. Try again.");
+      setFeedback({ message: error.response?.data?.error || "Purchase failed. Try again.", type: 'error' });
     }
   };
 
@@ -57,22 +64,30 @@ const PlansPage = () => {
 
   return (
     <div className="flex-1 font-inter">
-      <h1 className="text-3xl font-medium mb-6 text-[#F1F2FF] px-4 lg:px-0">Our Plans</h1>
+      <h1 className="text-3xl font-medium mb-2 text-[#F1F2FF] px-4 lg:px-0">Our Plans</h1>
+      <p className="text-gray-400 mb-6 px-4 lg:px-0">Current Wallet Balance: <span className="font-semibold text-white">₹{walletBalance.toLocaleString()}</span></p>
+
+      {feedback.message && (
+        <div className={`p-4 rounded-lg mb-6 ${feedback.type === 'success' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
+            {feedback.message}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
         {plans.map((plan) => (
-          <Card key={plan.name} className="bg-[#161D29] border-gray-800 font-manrope pl-4 pt-6 sm:pl-2 sm:pt-8 rounded-2xl overflow-hidden">
+          <Card key={plan.name} className="bg-[#161D29] border-gray-800 font-manrope flex flex-col pl-4 pt-6 sm:pl-2 sm:pt-8 rounded-2xl overflow-hidden">
             <CardHeader>
               <div className="w-fit bg-[#25703A] text-white px-3 py-2 rounded-md text-sm font-medium mb-4">
                 {plan.name.split(' ')[0].toUpperCase()}
               </div>
               <div className="text-4xl font-semibold font-manrope text-white mb-2">
-                ₹{plan.amount}
+                ₹{plan.amount.toLocaleString()}
               </div>
               <p className="text-gray-300 mb-4 font-[400] text-[15px] leading-[32px] align-middle">
                 {plan.description}
               </p>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-grow">
               <div className="mt-2">
                 <h4 className="text-md font-semibold uppercase tracking-wider text-[#25703A] mb-3">
                   FEATURES
@@ -82,12 +97,13 @@ const PlansPage = () => {
                 </ul>
               </div>
             </CardContent>
-            <CardFooter className="pt-10 sm:pt-21">
+            <CardFooter className="pt-10 sm:pt-21 mt-auto">
               <Button
                 className="w-full py-4 sm:py-6 bg-[#25703A] text-white hover:bg-[#24503A]"
                 onClick={() => handleBuyNow(plan)}
+                disabled={walletBalance < plan.amount}
               >
-                BUY NOW
+                {walletBalance < plan.amount ? "Insufficient Balance" : "BUY NOW"}
               </Button>
             </CardFooter>
           </Card>

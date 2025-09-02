@@ -6,7 +6,7 @@ const subscriptionSchema = new mongoose.Schema({
   amount: { type: Number, required: true },
   monthlyReturns: { type: Number, required: true },
   totalEarned: { type: Number, default: 0 },
-  status: { type: String, enum: ["active", "awaiting_admin", "completed"], default: "active" },
+  status: { type: String, enum: ["active", "awaiting_admin", "completed", "cancellation_requested", "rejected"], default: "awaiting_approval"  },
   startDate: { type: Date, default: Date.now },
   endDate: { type: Date },
   nextReturnDate: { type: Date }, 

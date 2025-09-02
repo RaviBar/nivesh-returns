@@ -50,10 +50,9 @@ router.post("/deposit", authMiddleware, async (req, res) => {
     const isAuthentic = expectedSignature === razorpay_signature;
 
     if (isAuthentic) {
-        // Payment is authentic, now update the user's wallet.
-        await User.findByIdAndUpdate(req.user.id, {
-            $inc: { wallet: amount }
-        });
+        const user = await User.findByIdAndUpdate(req.user.id, {
+            $inc: { wallet: amount, totalDeposited: amount }
+        }, { new: true });
 
         await Ledger.create({
             user: req.user.id,
@@ -61,23 +60,17 @@ router.post("/deposit", authMiddleware, async (req, res) => {
             amount,
             description: "Wallet Deposit",
         });
-        await Investment.findOneAndUpdate(
-            { userId: req.user.id },
-            { $inc: { totalDeposited: amount } },
-            { upsert: true, new: true }
-        );
+
         res.json({
             success: true,
             walletBalance: user.wallet,
             message: "Deposit successful",
         });
-        res.json({ success: true, orderId: razorpay_order_id, paymentId: razorpay_payment_id });
 
     } else {
         res.status(400).json({ success: false, error: "Invalid signature" });
     }
 });
-
 // Purchase a plan using wallet balance
 router.post("/purchase-plan", authMiddleware, async (req, res) => {
   try {
@@ -90,33 +83,27 @@ router.post("/purchase-plan", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Insufficient wallet balance" });
     }
 
-    // Deduct plan amount from wallet
     user.wallet -= plan.amount;
     await user.save();
 
-    const startDate = new Date();
-    const nextReturnDate = new Date(startDate);
-    nextReturnDate.setMonth(nextReturnDate.getMonth() + 1);
-
-    // Create subscription
     await Subscription.create({
         userId,
         planName: plan.name,
         amount: plan.amount,
         monthlyReturns: plan.monthlyReturn,
-        status: "active",
-        startDate: startDate,
-        nextReturnDate: nextReturnDate,
+        status: "awaiting_approval", 
+        startDate: new Date(),
+    });
+    
+    // Log the debit transaction
+    await Ledger.create({
+        user: userId,
+        type: "debit",
+        amount: plan.amount,
+        description: `Purchase of ${plan.name} (Pending Approval)`,
     });
 
-    // Update total invested amount
-    await Investment.findOneAndUpdate(
-      { userId },
-      { $inc: { totalInvested: plan.amount, activePlans: 1 } },
-      { upsert: true, new: true }
-    );
-
-    res.json({ success: true, message: "Plan purchased successfully!" });
+    res.json({ success: true, message: "Plan purchased successfully! Your investment is awaiting admin approval." });
   } catch (err) {
     console.error("Error purchasing plan:", err);
     res.status(500).json({ error: "Something went wrong" });
