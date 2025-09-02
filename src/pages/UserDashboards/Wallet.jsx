@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import Card from "../../components/user/Card";
 import { Link, useNavigate } from "react-router-dom";
-import upgraphIcon from "../../assets/upGraphIcon.svg";
-import downgraphIcon from "../../assets/downGraphIcon.svg";
+import upGraphIcon from "../../assets/upGraphIcon.svg";
+import downGraphIcon from "../../assets/downGraphIcon.svg";
 import squareIcon from "../../assets/squareIcon.svg";
 import axios from "axios";
 
@@ -172,7 +172,7 @@ const WalletPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 w-full lg:w-[916px] lg:ml-10 mx-auto">
           <Card className="h-[106px]">
             <div className="px-6 py-6 flex items-center gap-[22px] h-full">
-              <img src={upgraphIcon} alt="Wallet" className="w-[40px] h-[24px]" />
+              <img src={upGraphIcon} alt="Wallet" className="w-[40px] h-[24px]" />
               <div>
                 <h3 className="text-[#666D80] text-sm mb-[10px]">Wallet Balance</h3>
                 <p className="text-xl font-semibold text-white">
@@ -196,7 +196,7 @@ const WalletPage = () => {
 
           <Card className="h-[106px]">
             <div className="px-6 py-6 flex items-center gap-[22px] h-full">
-              <img src={downgraphIcon} alt="Withdrawals" className="w-[40px] h-[24px]" />
+              <img src={downGraphIcon} alt="Withdrawals" className="w-[40px] h-[24px]" />
               <div>
                 <h3 className="text-[#666D80] text-sm mb-[10px]">Withdrawn</h3>
                 <p className="text-xl font-semibold text-white">
