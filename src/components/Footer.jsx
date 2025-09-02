@@ -1,7 +1,7 @@
 import { Button } from "./ui/button";
 import { Link } from "react-router-dom";
 import logo from "../assets/logo2.svg";
-import mailIcon from "../assets/mailIcon.svg";
+import mailIcon from "../assets/mailicon.svg";
 import facebookIcon from '../assets/facebook-icon.svg';
 import twitterIcon from '../assets/twitter-icon.svg';
 import instagramIcon from '../assets/instagram-icon.svg';
