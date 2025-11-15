@@ -7,7 +7,6 @@
   const router = express.Router();
 
   router.post("/signup", async (req, res) => {
-    // console.log("Incoming body:", req.body); 
     try {
       const { firstName, lastName, email, phone, password } = req.body;
       const existingUser = await User.findOne({ email });
@@ -31,7 +30,6 @@
   router.post("/login", async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
-    // console.log("User found:", user);
     if (!user || !(await bcrypt.compare(password, user.password))) return res.status(401).json({ error: "Invalid" });
     const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "7d" });
     res.cookie("token", token, { httpOnly: true }).json({ success: true, token, role: user.role });

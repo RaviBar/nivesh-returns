@@ -12,7 +12,7 @@ const PlansPage = () => {
   useEffect(() => {
     const fetchWalletBalance = async () => {
       try {
-        const { data } = await axios.get("http://localhost:5000/api/wallet", {
+        const { data } = await axios.get(`${process.env.VITE_API_URL}/api/wallet`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
@@ -35,7 +35,7 @@ const PlansPage = () => {
         return;
       }
 
-      const { data } = await axios.post("http://localhost:5000/api/purchase-plan",
+      const { data } = await axios.post(`${process.env.VITE_API_URL}/api/purchase-plan`,
       { plan },
       {
         headers: {
@@ -45,7 +45,7 @@ const PlansPage = () => {
 
       setFeedback({ message: data.message, type: 'success' });
       // Refresh wallet balance after purchase
-      const updatedWallet = await axios.get("http://localhost:5000/api/wallet", {
+      const updatedWallet = await axios.get(`${process.env.VITE_API_URL}/api/wallet`, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       setWalletBalance(updatedWallet.data.walletBalance);

@@ -1,7 +1,6 @@
 import dotenv from "dotenv";
 dotenv.config({ path: "../.env" });
 import express from "express";
-import mongoose from "mongoose";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import walletRoutes from "./api/routes/wallet.js";
@@ -13,11 +12,20 @@ import { initScheduledJobs } from "./cron/returnsJob.js";
 
 const app = express();
 
+const allowedOrigins = (process.env.FRONTEND_ORIGIN || "http://localhost:5173")
+  .split(",")
+  .map(s => s.trim());
+
 app.use(cors({
-    origin: "http://localhost:5173",  
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error(`CORS blocked for origin: ${origin}`), false);
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "Accept", "X-Requested-With"]
 }));
 
 app.use(express.json());
@@ -29,7 +37,8 @@ app.use("/api/wallet", walletRoutes);
 app.use("/api", paymentRoutes);
 app.use("/api/investments", investmentRoutes);
 app.use("/api/auth", authRoutes);
+app.get("/health", (_, res) => res.json({ ok: true }));
 
 initScheduledJobs();
-
-app.listen(5000, () => console.log("Server running on port 5000"));
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on ${PORT}`));

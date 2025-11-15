@@ -11,7 +11,7 @@ const ManageWithdrawals = () => {
   const fetchWithdrawals = async () => {
     try {
       setLoading(true);
-      const { data } = await axios.get("http://localhost:5000/api/admin/withdrawals", {
+      const { data } = await axios.get(`${process.env.VITE_API_URL}/api/admin/withdrawals`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       setWithdrawals(data);
@@ -31,7 +31,7 @@ const ManageWithdrawals = () => {
       try {
           setError('');
           setSuccess('');
-          await axios.post(`http://localhost:5000/api/admin/withdrawals/${id}/${action}`, {}, {
+          await axios.post(`${process.env.VITE_API_URL}/api/admin/withdrawals/${id}/${action}`, {}, {
               headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
           });
           setSuccess(`Withdrawal successfully ${action}ed.`);

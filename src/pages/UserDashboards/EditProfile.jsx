@@ -29,7 +29,7 @@ const EditProfilePage = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const { data } = await axios.get("http://localhost:5000/api/auth/profile", {
+        const { data } = await axios.get(`${process.env.VITE_API_URL}/api/auth/profile`, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
         setFormData({
@@ -59,12 +59,12 @@ const EditProfilePage = () => {
 
   const handleSaveProfile = async () => {
     try {
-      await axios.put("http://localhost:5000/api/auth/profile", formData, {
+      await axios.put(`${process.env.VITE_API_URL}/api/auth/profile`, formData, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       
       if (passwordData.currentPassword && passwordData.newPassword) {
-        await axios.post("http://localhost:5000/api/auth/change-password", passwordData, {
+        await axios.post(`${process.env.VITE_API_URL}/api/auth/change-password`, passwordData, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
       }
