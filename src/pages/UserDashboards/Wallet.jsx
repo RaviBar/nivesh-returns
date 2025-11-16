@@ -28,7 +28,7 @@ const WalletPage = () => {
     }
 
     try {
-        const { data: order } = await axios.post(`${process.env.VITE_API_URL}/api/create-order`,
+        const { data: order } = await axios.post(`${import.meta.env.VITE_API_URL}/api/create-order`,
             { amount: amountNum },
             {
                 headers: {
@@ -45,7 +45,7 @@ const WalletPage = () => {
             description: "Wallet Deposit",
             order_id: order.id,
             handler: async function (response) {
-                await axios.post(`${process.env.VITE_API_URL}/api/deposit`, {
+                await axios.post(`${import.meta.env.VITE_API_URL}/api/deposit`, {
                     ...response,
                     amount: amountNum,
                 }, {
@@ -89,7 +89,7 @@ const WalletPage = () => {
 
 
     try {
-        const res = await axios.post(`${process.env.VITE_API_URL}/api/wallet/withdraw`, {
+        const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/wallet/withdraw`, {
                 amount: amountNum,
             },
             {
@@ -115,12 +115,12 @@ const WalletPage = () => {
   const fetchData = async () => {
     try {
       const token = localStorage.getItem("token");
-      const walletRes = await axios.get(`${process.env.VITE_API_URL}/api/wallet`, {
+      const walletRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/wallet`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setWalletData(walletRes.data);
 
-      const profileRes = await axios.get(`${process.env.VITE_API_URL}/api/auth/profile`, {
+      const profileRes = await axios.get(`${import.meta.env.VITE_API_URL}/api/auth/profile`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUser(profileRes.data);

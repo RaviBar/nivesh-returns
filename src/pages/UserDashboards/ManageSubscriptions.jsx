@@ -12,7 +12,7 @@ const ManageSubscriptions = () => {
     const fetchSubscriptions = async () => {
         try {
             setLoading(true);
-            const { data } = await axios.get(`${process.env.VITE_API_URL}/api/admin/subscriptions`, {
+            const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/subscriptions`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
             });
             setSubscriptions(data);
@@ -32,7 +32,7 @@ const ManageSubscriptions = () => {
             setError('');
             setSuccess('');
             const endpoint = action === 'approve' ? 'approve' : 'approve-cancellation';
-            const { data } = await axios.post(`${process.env.VITE_API_URL}/api/admin/subscriptions/${id}/${endpoint}`, {}, {
+            const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/admin/subscriptions/${id}/${endpoint}`, {}, {
                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
             });
             setSuccess(data.message);

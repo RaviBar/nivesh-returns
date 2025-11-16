@@ -11,7 +11,7 @@ const ManageUsers = () => {
     const fetchUsers = async () => {
         try {
             setLoading(true);
-            const { data } = await axios.get(`${process.env.VITE_API_URL}/api/admin/users`, {
+            const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/users`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
             });
             setUsers(data);
@@ -30,7 +30,7 @@ const ManageUsers = () => {
         try {
             setError('');
             setSuccess('');
-            await axios.post(`${process.env.VITE_API_URL}/api/admin/kyc/${userId}`, { status }, {
+            await axios.post(`${import.meta.env.VITE_API_URL}/api/admin/kyc/${userId}`, { status }, {
                 headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
             });
             setSuccess(`User KYC status updated to ${status}.`);

@@ -136,7 +136,7 @@ const InvestmentsPage = () => {
 
   const fetchInvestments = async () => {
     try {
-      const { data } = await axios.get(`${process.env.VITE_API_URL}/api/investments`, {
+      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/investments`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
@@ -157,7 +157,7 @@ const InvestmentsPage = () => {
       
       try {
           setFeedback({ message: '', type: '' });
-          const { data } = await axios.post(`${process.env.VITE_API_URL}/api/investments/subscriptions/${subId}/request-cancellation`, {}, {
+          const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/investments/subscriptions/${subId}/request-cancellation`, {}, {
               headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
           });
           setFeedback({ message: data.message, type: 'success' });

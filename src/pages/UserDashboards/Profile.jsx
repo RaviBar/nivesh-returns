@@ -11,7 +11,7 @@ const Profile = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const { data } = await axios.get(`${process.env.VITE_API_URL}/api/auth/profile`, {
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/auth/profile`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },

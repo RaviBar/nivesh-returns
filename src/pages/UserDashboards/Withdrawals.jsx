@@ -16,7 +16,7 @@ const WithdrawalsPage = () => {
   const [loading, setLoading] = useState(true);
   const fetchProfile = async () => {
     try {
-      const { data } = await axios.get(`${process.env.VITE_API_URL}/api/auth/profile`, {
+      const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/auth/profile`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       setUser(data);
@@ -56,7 +56,7 @@ const WithdrawalsPage = () => {
   const handleKeepEditing = () => setShowCancelModal(false);
   const handleSave = async () => {
     try {
-      await axios.put(`${process.env.VITE_API_URL}/api/auth/profile`, bankDetails, {
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/auth/profile`, bankDetails, {
          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       alert("Bank details updated successfully!");

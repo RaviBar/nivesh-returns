@@ -12,7 +12,7 @@ const AdminDashboard = () => {
     useEffect(() => {
         const fetchSummary = async () => {
             try {
-                const { data } = await axios.get(`${process.env.VITE_API_URL}/api/admin/dashboard-summary`, {
+                const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/dashboard-summary`, {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem("token")}`,
                     },
