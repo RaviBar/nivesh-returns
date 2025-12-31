@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Card from "../../components/user/Card";
 import axios from "axios";
 import { Link } from "react-router-dom";
-import { Users, AlertTriangle, CheckCircle, Clock, CreditCard } from 'lucide-react';
+import { Users, AlertTriangle, CheckCircle, Clock, CreditCard, PieChart, Wallet, TrendingUp } from 'lucide-react';
 
 
 const AdminDashboard = () => {
@@ -76,7 +76,7 @@ const AdminDashboard = () => {
 
             {/* Overview Stats */}
             <h2 className="text-lg font-semibold text-gray-300 mb-4">Platform Overview</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <Card>
                     <div className="p-6 flex items-center gap-4">
                         <Users className="w-8 h-8 text-green-400" />
@@ -92,6 +92,46 @@ const AdminDashboard = () => {
                         <div>
                             <h3 className="text-gray-400 text-sm">Active Investments</h3>
                             <p className="text-2xl font-semibold text-white">₹{summary.totalInvested.toLocaleString()}</p>
+                        </div>
+                    </div>
+                </Card>
+                <Card>
+                    <div className="p-6 flex items-center gap-4">
+                        <Wallet className="w-8 h-8 text-emerald-400" />
+                        <div>
+                            <h3 className="text-gray-400 text-sm">Total Deposited</h3>
+                            <p className="text-2xl font-semibold text-white">₹{summary.platformFund?.totalDeposited?.toLocaleString() || 0}</p>
+                        </div>
+                    </div>
+                </Card>
+                <Card>
+                    <div className="p-6 flex items-center gap-4">
+                        <PieChart className="w-8 h-8 text-purple-400" />
+                        <div>
+                            <h3 className="text-gray-400 text-sm">Available For Investment</h3>
+                            <p className="text-2xl font-semibold text-white">₹{summary.platformFund?.availableForInvestment?.toLocaleString() || 0}</p>
+                        </div>
+                    </div>
+                </Card>
+            </div>
+
+            <h2 className="text-lg font-semibold text-gray-300 mb-4 mt-10">Fund Performance</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+                <Card>
+                    <div className="p-6 flex items-center gap-4">
+                        <TrendingUp className="w-8 h-8 text-pink-400" />
+                        <div>
+                            <h3 className="text-gray-400 text-sm">Returns Distributed</h3>
+                            <p className="text-2xl font-semibold text-white">₹{summary.platformFund?.totalReturnsDistributed?.toLocaleString() || 0}</p>
+                        </div>
+                    </div>
+                </Card>
+                <Card>
+                    <div className="p-6 flex items-center gap-4">
+                        <CreditCard className="w-8 h-8 text-blue-400" />
+                        <div>
+                            <h3 className="text-gray-400 text-sm">Total Withdrawn</h3>
+                            <p className="text-2xl font-semibold text-white">₹{summary.platformFund?.totalWithdrawn?.toLocaleString() || 0}</p>
                         </div>
                     </div>
                 </Card>

@@ -4,6 +4,7 @@ import User from "../../models/User.js";
 import Subscription from "../../models/Subscription.js";
 import Withdrawal from "../../models/Withdrawals.js";
 import Investment from "../../models/Investments.js";
+import PlatformFund from "../../models/PlatformFund.js";
 import Ledger from "../../models/Ledger.js";
 
 const router = express.Router();
@@ -24,17 +25,45 @@ router.get("/dashboard-summary", async (req, res) => {
         ]);
         const totalInvested = totalInvestedResult[0]?.total || 0;
 
+        const fund = await PlatformFund.findOne();
         res.json({
             totalUsers,
             pendingWithdrawals,
             totalInvested,
             pendingSubscriptions,
             cancellationRequests,
+            platformFund: fund ? {
+              totalDeposited: fund.totalDeposited,
+              totalInvested: fund.totalInvested,
+              totalReturnsDistributed: fund.totalReturnsDistributed,
+              totalWithdrawn: fund.totalWithdrawn,
+              availableForInvestment: fund.availableForInvestment
+            } : null
         });
     } catch (error) {
         console.error("Dashboard summary error:", error);
         res.status(500).json({ error: "Failed to fetch dashboard summary" });
     }
+});
+
+// Dedicated platform fund metrics route
+router.get('/platform-fund', async (req, res) => {
+  try {
+    const fund = await PlatformFund.findOne();
+    if (!fund) return res.json({ platformFund: null });
+    res.json({
+      platformFund: {
+        totalDeposited: fund.totalDeposited,
+        totalInvested: fund.totalInvested,
+        totalReturnsDistributed: fund.totalReturnsDistributed,
+        totalWithdrawn: fund.totalWithdrawn,
+        availableForInvestment: fund.availableForInvestment
+      }
+    });
+  } catch (err) {
+    console.error('Platform fund fetch error:', err);
+    res.status(500).json({ error: 'Failed to fetch platform fund metrics' });
+  }
 });
 
 
@@ -55,31 +84,37 @@ router.get("/subscriptions", async (req, res) => {
 });
 
 router.post("/subscriptions/:id/approve", async (req, res) => {
-    try {
-        const sub = await Subscription.findById(req.params.id);
-        if (!sub || sub.status !== 'awaiting_approval') {
-            return res.status(400).json({ error: 'Subscription not found or already processed.' });
-        }
-
-        const nextReturnDate = new Date(sub.startDate);
-        nextReturnDate.setMonth(nextReturnDate.getMonth() + 1);
-
-        sub.status = 'active';
-        sub.nextReturnDate = nextReturnDate;
-        await sub.save();
-
-        // Update user's total investment tracker
-        await Investment.findOneAndUpdate(
-            { userId: sub.userId },
-            { $inc: { totalInvested: sub.amount, activePlans: 1 } },
-            { upsert: true, new: true }
-        );
-
-        res.json({ success: true, message: "Subscription approved and activated." });
-    } catch (error) {
-        console.error("Error approving subscription:", error);
-        res.status(500).json({ error: "Server error." });
+  try {
+    const sub = await Subscription.findById(req.params.id);
+    if (!sub || sub.status !== 'awaiting_approval') {
+      return res.status(400).json({ error: 'Subscription not found or already processed.' });
     }
+
+    // Set next return date one month ahead and maturity date based on duration
+    const nextReturnDate = new Date(sub.startDate);
+    nextReturnDate.setMonth(nextReturnDate.getMonth() + 1);
+
+    const endDate = new Date(sub.startDate);
+    if (sub.durationMonths) {
+      endDate.setMonth(endDate.getMonth() + sub.durationMonths);
+    }
+
+    sub.status = 'active';
+    sub.nextReturnDate = nextReturnDate;
+    sub.endDate = endDate;
+    await sub.save();
+
+    await Investment.findOneAndUpdate(
+      { userId: sub.userId },
+      { $inc: { totalInvested: sub.amount, activePlans: 1 } },
+      { upsert: true, new: true }
+    );
+
+    res.json({ success: true, message: 'Subscription approved and activated.' });
+  } catch (error) {
+    console.error('Error approving subscription:', error);
+    res.status(500).json({ error: 'Server error.' });
+  }
 });
 
 router.post("/subscriptions/:id/approve-cancellation", async (req, res) => {
@@ -160,6 +195,15 @@ router.post("/withdrawals/:id/approve", async (req, res) => {
     await User.findByIdAndUpdate(withdrawal.user, { 
       $inc: { wallet: -withdrawal.amount, totalWithdrawn: withdrawal.amount } 
     });
+
+    // Update platform fund totals
+    const fund = await PlatformFund.findOne();
+    if (fund) {
+      fund.totalWithdrawn += withdrawal.amount;
+      await fund.save();
+    } else {
+      await PlatformFund.create({ totalWithdrawn: withdrawal.amount });
+    }
     
     await Withdrawal.findByIdAndUpdate(req.params.id, { 
       status: "completed",

@@ -238,9 +238,8 @@ const handleCountryCodeSelect = (code) => {
             <img
               src={bg}
               alt="Sign up background illustration"
-              fill
-              className="object-contain"
-              priority
+              className="object-contain w-full h-full"
+              loading="eager"
             />
           </div>
           
@@ -249,9 +248,8 @@ const handleCountryCodeSelect = (code) => {
             <img
               src={signupImg}
               alt="Sign up foreground illustration"
-              fill
-              className="object-contain"
-              priority
+              className="object-contain w-full h-full"
+              loading="eager"
             />
           </div>
         </div>

@@ -1,10 +1,17 @@
 import dotenv from "dotenv";
-dotenv.config();
+import { fileURLToPath } from "url";
+import path from "path";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.join(__dirname, '.env') });
+
 import express from "express";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import walletRoutes from "./api/routes/wallet.js";
 import authRoutes from "./api/routes/auth.js";
+import adminRoutes from "./api/routes/admin.js";
+import plansRoutes from "./api/routes/plans.js";
 import { connectDB } from "./db.js";
 import investmentRoutes from "./api/routes/investment.js";
 import paymentRoutes from "./api/routes/paymentRoutes.js";
@@ -37,6 +44,8 @@ app.use("/api/wallet", walletRoutes);
 app.use("/api", paymentRoutes);
 app.use("/api/investments", investmentRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/plans", plansRoutes);
 app.get("/health", (_, res) => res.json({ ok: true }));
 
 initScheduledJobs();

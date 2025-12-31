@@ -112,7 +112,7 @@ export default function LoginForm() {
               src={bg}
               alt="Login background illustration"
               className="object-contain h-full w-full"
-              priority
+              loading="eager"
             />
           </div>
           
@@ -122,7 +122,7 @@ export default function LoginForm() {
               src={loginImg}
               alt="Login foreground illustration"
               className="object-contain h-full w-full"
-              priority
+              loading="eager"
             />
           </div>
         </div>

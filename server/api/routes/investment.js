@@ -11,14 +11,8 @@ router.get("/", authMiddleware, async (req, res) => {
     const allSubs = await Subscription.find({ userId }).sort({ createdAt: -1 });
     const activeSubs = allSubs.filter(s => s.status === "active");
 
-    const totalInvestment = activeSubs.reduce(
-      (sum, s) => sum + (s.amount || 0),
-      0
-    );
-    const totalEarned = allSubs.reduce(
-      (sum, s) => sum + (s.totalEarned || 0),
-      0
-    );
+    const totalInvestment = activeSubs.reduce((sum, s) => sum + (s.amount || 0), 0);
+    const totalEarned = allSubs.reduce((sum, s) => sum + (s.totalEarned || 0), 0);
     const activePlans = activeSubs.length;
 
     const subscriptions = allSubs.map(s => ({
@@ -29,15 +23,14 @@ router.get("/", authMiddleware, async (req, res) => {
       monthlyReturns: s.monthlyReturns,
       startDate: s.startDate,
       nextReturnDate: s.nextReturnDate,
-      totalEarned: s.totalEarned
+      endDate: s.endDate,
+      durationMonths: s.durationMonths,
+      matured: s.matured || false,
+      totalEarned: s.totalEarned,
+      returnsHistory: s.returnsHistory || []
     }));
 
-    res.json({
-      totalInvestment,
-      totalEarned,
-      activePlans,
-      subscriptions,
-    });
+    res.json({ totalInvestment, totalEarned, activePlans, subscriptions });
   } catch (err) {
     console.error("Error fetching investments:", err);
     res.status(500).json({ error: "Failed to fetch investments" });

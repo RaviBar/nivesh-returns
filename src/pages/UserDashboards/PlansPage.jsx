@@ -7,22 +7,35 @@ import { useNavigate } from "react-router-dom";
 const PlansPage = () => {
   const navigate = useNavigate();
   const [walletBalance, setWalletBalance] = useState(0);
+  const [plans, setPlans] = useState([]);
+  const [loadingPlans, setLoadingPlans] = useState(true);
   const [feedback, setFeedback] = useState({ message: '', type: '' });
 
   useEffect(() => {
     const fetchWalletBalance = async () => {
       try {
         const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/wallet`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         });
         setWalletBalance(data.walletBalance);
       } catch (error) {
         console.error("Failed to fetch wallet balance:", error);
       }
     };
+    const fetchPlans = async () => {
+      try {
+        setLoadingPlans(true);
+        const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/plans`);
+        setPlans(data);
+      } catch (err) {
+        console.error("Failed to fetch plans:", err);
+        setFeedback({ message: 'Failed to load plans.', type: 'error' });
+      } finally {
+        setLoadingPlans(false);
+      }
+    };
     fetchWalletBalance();
+    fetchPlans();
   }, []);
 
 
@@ -36,14 +49,11 @@ const PlansPage = () => {
       }
 
       const { data } = await axios.post(`${import.meta.env.VITE_API_URL}/api/purchase-plan`,
-      { plan },
-      {
-        headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
+        { planId: plan.id },
+        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+      );
 
-      setFeedback({ message: data.message, type: 'success' });
+      setFeedback({ message: data.message || 'Plan purchase initiated.', type: 'success' });
       // Refresh wallet balance after purchase
       const updatedWallet = await axios.get(`${import.meta.env.VITE_API_URL}/api/wallet`, {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -56,11 +66,12 @@ const PlansPage = () => {
     }
   };
 
-  const plans = [
-    { name: "Starter Plan", amount: 13500, monthlyReturn: 1350, description: "Ideal for beginners looking to explore steady returns with minimal investment risk.", features: ["₹1,350 Monthly returns", "Low-risk, entry-level plan for beginners", "Quick onboarding and easy tracking", "100% secure wallet credit with real-time updates"] },
-    { name: "Growth Plan", amount: 25000, monthlyReturn: 2500, description: "A balanced plan offering better returns for those ready to scale up their investments.", features: ["Everything included in Basic", "Exchange up to $1MM per month", "Windows & macOS App", "Premium Support"] },
-    { name: "Pro Plan", amount: 50000, monthlyReturn: 5000, description: "Designed for serious investors seeking consistent high-yield monthly income.", features: ["Everything included in Basic", "Exchange to $3MM per month", "Windows & macOS App", "Premium Support"] },
-  ];
+  const interpretMonthlyReturn = (plan) => {
+    if (plan.isPercentage) {
+      return `~ ₹${Math.round((plan.amount * plan.monthlyReturn)/100).toLocaleString()} / month (${plan.monthlyReturn}% of principal)`;
+    }
+    return `₹${plan.monthlyReturn.toLocaleString()} / month fixed`;
+  };
 
   return (
     <div className="flex-1 font-inter">
@@ -74,7 +85,11 @@ const PlansPage = () => {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {plans.map((plan) => (
+        {loadingPlans ? (
+          <p className="text-gray-400 col-span-full">Loading plans...</p>
+        ) : plans.length === 0 ? (
+          <p className="text-red-400 col-span-full">No plans available.</p>
+        ) : plans.map((plan) => (
           <Card key={plan.name} className="bg-[#161D29] border-gray-800 font-manrope flex flex-col pl-4 pt-6 sm:pl-2 sm:pt-8 rounded-2xl overflow-hidden">
             <CardHeader>
               <div className="w-fit bg-[#25703A] text-white px-3 py-2 rounded-md text-sm font-medium mb-4">
@@ -84,8 +99,9 @@ const PlansPage = () => {
                 ₹{plan.amount.toLocaleString()}
               </div>
               <p className="text-gray-300 mb-4 font-[400] text-[15px] leading-[32px] align-middle">
-                {plan.description}
+                {interpretMonthlyReturn(plan)}
               </p>
+              <p className="text-gray-500 mb-4 text-xs">Duration: {plan.durationMonths} months</p>
             </CardHeader>
             <CardContent className="flex-grow">
               <div className="mt-2">
@@ -93,7 +109,10 @@ const PlansPage = () => {
                   FEATURES
                 </h4>
                 <ul className="space-y-3 list-disc list-outside max-w-[270px] font-DMsans pl-4 leading-[20px] text-[14px] text-gray-400">
-                  {plan.features.map(feature => <li key={feature}>{feature}</li>)}
+                  <li>Secure wallet-backed investment</li>
+                  <li>Admin approval required</li>
+                  <li>Automated monthly returns</li>
+                  <li>Principal returned at maturity</li>
                 </ul>
               </div>
             </CardContent>

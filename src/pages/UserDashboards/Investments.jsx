@@ -105,6 +105,12 @@ const PlanGroup = ({ planName, subs, onCancel }) => {
                                 <span className="text-sm font-semibold text-white">Total Earned on this Plan</span>
                                 <span className="text-[#666D80] text-sm">₹{sub.totalEarned.toLocaleString()}</span>
                                 </div>
+                                {sub.endDate && (
+                                  <div className="flex justify-between">
+                                    <span className="text-sm font-semibold text-white">Maturity Date</span>
+                                    <span className="text-[#666D80] text-sm">{new Date(sub.endDate).toLocaleDateString()}</span>
+                                  </div>
+                                )}
                                 {sub.status === "active" && sub.nextReturnDate && (
                                 <div className="flex justify-between items-center">
                                     <span className="text-sm font-semibold text-white">Next Return In</span>
@@ -112,6 +118,27 @@ const PlanGroup = ({ planName, subs, onCancel }) => {
                                         <Countdown targetDate={sub.nextReturnDate} />
                                     </div>
                                 </div>
+                                )}
+                                {sub.matured && (
+                                  <div className="flex justify-between">
+                                    <span className="text-sm font-semibold text-white">Status</span>
+                                    <span className="text-green-400 text-sm">Matured - Principal Returned</span>
+                                  </div>
+                                )}
+                                {sub.returnsHistory && sub.returnsHistory.length > 0 && (
+                                  <div className="pt-2">
+                                    <details className="group">
+                                      <summary className="cursor-pointer text-xs text-gray-400 group-open:text-gray-300">Return History ({sub.returnsHistory.length})</summary>
+                                      <ul className="mt-2 space-y-1 max-h-40 overflow-y-auto pr-2 text-xs text-gray-500">
+                                        {sub.returnsHistory.slice().reverse().map((r, idx) => (
+                                          <li key={idx} className="flex justify-between">
+                                            <span>{new Date(r.date).toLocaleDateString()}</span>
+                                            <span className="text-green-400">+₹{r.amount.toLocaleString()}</span>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </details>
+                                  </div>
                                 )}
                                 {sub.status === 'active' && (
                                     <div className="text-right pt-2">

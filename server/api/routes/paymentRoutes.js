@@ -4,6 +4,8 @@ import Subscription from "../../models/Subscription.js";
 import User from "../../models/User.js";
 import Investment from "../../models/Investments.js";
 import Ledger from "../../models/Ledger.js";
+import Plan from "../../models/Plan.js";
+import PlatformFund from "../../models/PlatformFund.js";
 import { authMiddleware } from "../../middleware/auth.js";
 import crypto from "crypto";
 
@@ -54,6 +56,15 @@ router.post("/deposit", authMiddleware, async (req, res) => {
             $inc: { wallet: amount, totalDeposited: amount }
         }, { new: true });
 
+        // Update platform fund aggregate for deposits
+        const fund = await PlatformFund.findOne();
+        if (fund) {
+          fund.totalDeposited += amount;
+          await fund.save();
+        } else {
+          await PlatformFund.create({ totalDeposited: amount });
+        }
+
         await Ledger.create({
             user: req.user.id,
             type: "credit",
@@ -74,36 +85,53 @@ router.post("/deposit", authMiddleware, async (req, res) => {
 // Purchase a plan using wallet balance
 router.post("/purchase-plan", authMiddleware, async (req, res) => {
   try {
-    const { plan } = req.body;
-    const userId = req.user.id;
+    const { planId } = req.body;
+    if (!planId) return res.status(400).json({ error: "planId is required" });
 
+    const plan = await Plan.findById(planId);
+    if (!plan) return res.status(404).json({ error: "Plan not found" });
+
+    const userId = req.user.id;
     const user = await User.findById(userId);
 
     if (user.wallet < plan.amount) {
       return res.status(400).json({ error: "Insufficient wallet balance" });
     }
 
+    // Deduct user wallet
     user.wallet -= plan.amount;
     await user.save();
 
-    await Subscription.create({
-        userId,
-        planName: plan.name,
-        amount: plan.amount,
-        monthlyReturns: plan.monthlyReturn,
-        status: "awaiting_approval", 
-        startDate: new Date(),
-    });
-    
-    // Log the debit transaction
-    await Ledger.create({
-        user: userId,
-        type: "debit",
-        amount: plan.amount,
-        description: `Purchase of ${plan.name} (Pending Approval)`,
+    // Create pending subscription
+    const subscription = await Subscription.create({
+      userId,
+      planId: plan._id,
+      planName: plan.name,
+      amount: plan.amount,
+      monthlyReturns: plan.isPercentage ? (plan.amount * plan.monthlyReturn) / 100 : plan.monthlyReturn,
+      status: "awaiting_approval",
+      startDate: new Date(),
+      durationMonths: plan.durationMonths
     });
 
-    res.json({ success: true, message: "Plan purchased successfully! Your investment is awaiting admin approval." });
+    // Log the debit transaction
+    await Ledger.create({
+      user: userId,
+      type: "debit",
+      amount: plan.amount,
+      description: `Purchase of ${plan.name} (Pending Approval)`
+    });
+
+    // Update platform fund aggregate
+    const fund = await PlatformFund.findOne();
+    if (fund) {
+      fund.totalInvested += plan.amount; // considered earmarked for investment
+      await fund.save();
+    } else {
+      await PlatformFund.create({ totalInvested: plan.amount });
+    }
+
+    res.json({ success: true, message: "Plan purchased successfully! Awaiting admin approval.", subscriptionId: subscription._id });
   } catch (err) {
     console.error("Error purchasing plan:", err);
     res.status(500).json({ error: "Something went wrong" });
